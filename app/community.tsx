@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
+import AuthGuard from '../components/AuthGuard';
+import { useAuth } from '../contexts/AuthContext';
 
 interface CommunityPost {
   id: number;
@@ -27,6 +29,7 @@ interface CommunityMember {
 
 export default function Community() {
   const router = useRouter();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'feed' | 'members' | 'groups'>('feed');
   const [newPost, setNewPost] = useState('');
 
@@ -150,24 +153,39 @@ export default function Community() {
 
   const renderFeed = () => (
     <ScrollView style={styles.tabContent}>
-      {/* New Post */}
-      <View style={styles.newPostContainer}>
-        <Text style={styles.newPostTitle}>💭 何を共有しますか？</Text>
-        <TextInput
-          style={styles.newPostInput}
-          placeholder="学習の進捗、質問、発見を共有しましょう..."
-          multiline
-          value={newPost}
-          onChangeText={setNewPost}
-        />
-        <TouchableOpacity 
-          style={[styles.postButton, !newPost.trim() && styles.postButtonDisabled]}
-          onPress={handlePostSubmit}
-          disabled={!newPost.trim()}
-        >
-          <Text style={styles.postButtonText}>投稿する</Text>
-        </TouchableOpacity>
-      </View>
+      {/* New Post - Only for authenticated users */}
+      {user ? (
+        <View style={styles.newPostContainer}>
+          <Text style={styles.newPostTitle}>💭 何を共有しますか？</Text>
+          <TextInput
+            style={styles.newPostInput}
+            placeholder="学習の進捗、質問、発見を共有しましょう..."
+            multiline
+            value={newPost}
+            onChangeText={setNewPost}
+          />
+          <TouchableOpacity 
+            style={[styles.postButton, !newPost.trim() && styles.postButtonDisabled]}
+            onPress={handlePostSubmit}
+            disabled={!newPost.trim()}
+          >
+            <Text style={styles.postButtonText}>投稿する</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.visitorNoticeContainer}>
+          <Text style={styles.visitorNoticeTitle}>👋 コミュニティへようこそ</Text>
+          <Text style={styles.visitorNoticeText}>
+            投稿やメンバーとの交流には会員登録が必要です。
+          </Text>
+          <TouchableOpacity 
+            style={styles.loginPromptButton}
+            onPress={() => router.push('/login')}
+          >
+            <Text style={styles.loginPromptButtonText}>ログイン・登録</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Posts */}
       {posts.map((post) => (
@@ -322,6 +340,7 @@ export default function Community() {
   );
 
   return (
+    <AuthGuard requireAuth={false}>
     <View style={styles.container}>
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
@@ -356,6 +375,7 @@ export default function Community() {
       {activeTab === 'members' && renderMembers()}
       {activeTab === 'groups' && renderGroups()}
     </View>
+    </AuthGuard>
   );
 }
 
@@ -433,6 +453,39 @@ const styles = StyleSheet.create({
     backgroundColor: '#9ca3af',
   },
   postButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  // Visitor Notice Styles
+  visitorNoticeContainer: {
+    backgroundColor: '#eff6ff',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+  },
+  visitorNoticeTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1e40af',
+    marginBottom: 8,
+  },
+  visitorNoticeText: {
+    fontSize: 14,
+    color: '#3730a3',
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  loginPromptButton: {
+    backgroundColor: '#3b82f6',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  loginPromptButtonText: {
     color: 'white',
     fontSize: 14,
     fontWeight: '600',

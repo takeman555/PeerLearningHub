@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
+import AuthGuard from '../components/AuthGuard';
 
 interface Accommodation {
   id: number;
@@ -393,6 +394,7 @@ export default function Accommodation() {
   );
 
   return (
+    <AuthGuard>
     <View style={styles.container}>
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
@@ -427,6 +429,7 @@ export default function Accommodation() {
       {activeTab === 'bookings' && renderBookings()}
       {activeTab === 'favorites' && renderFavorites()}
     </View>
+    </AuthGuard>
   );
 }
 

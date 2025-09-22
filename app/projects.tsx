@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import AuthGuard from '../components/AuthGuard';
 
 interface Project {
   id: number;
@@ -104,6 +105,7 @@ export default function Projects() {
   };
 
   return (
+    <AuthGuard>
     <View style={styles.container}>
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
@@ -214,6 +216,7 @@ export default function Projects() {
         )}
       </ScrollView>
     </View>
+    </AuthGuard>
   );
 }
 

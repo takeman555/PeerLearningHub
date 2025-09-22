@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
+import AuthGuard from '../components/AuthGuard';
 
 interface Activity {
   id: number;
@@ -485,6 +486,7 @@ export default function Activity() {
   );
 
   return (
+    <AuthGuard>
     <View style={styles.container}>
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
@@ -519,6 +521,7 @@ export default function Activity() {
       {activeTab === 'schedule' && renderSchedule()}
       {activeTab === 'analytics' && renderAnalytics()}
     </View>
+    </AuthGuard>
   );
 }
 

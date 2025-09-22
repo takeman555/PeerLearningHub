@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import AuthGuard from '../components/AuthGuard';
 
 interface Session {
   id: number;
@@ -146,6 +147,7 @@ export default function PeerSessions() {
   };
 
   return (
+    <AuthGuard>
     <View style={styles.container}>
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
@@ -284,6 +286,7 @@ export default function PeerSessions() {
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
     </View>
+    </AuthGuard>
   );
 }
 

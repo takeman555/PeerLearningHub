@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
+import AuthGuard from '../components/AuthGuard';
 
 interface SearchResult {
   id: number;
@@ -189,6 +190,7 @@ export default function Search() {
   };
 
   return (
+    <AuthGuard requireAuth={false}>
     <View style={styles.container}>
       {/* Search Header */}
       <View style={styles.searchHeader}>
@@ -386,6 +388,7 @@ export default function Search() {
         </View>
       )}
     </View>
+    </AuthGuard>
   );
 }
 

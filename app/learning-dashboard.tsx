@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import AuthGuard from '../components/AuthGuard';
 
 interface LearningStats {
   weeklyHours: number;
@@ -36,6 +37,7 @@ export default function LearningDashboard() {
   ]);
 
   return (
+    <AuthGuard>
     <ScrollView style={styles.container}>
       {/* Stats Overview */}
       <View style={styles.statsContainer}>
@@ -129,6 +131,7 @@ export default function LearningDashboard() {
         </View>
       </View>
     </ScrollView>
+    </AuthGuard>
   );
 }
 

@@ -1,43 +1,110 @@
 import React from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
-import { Link } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Link, useRouter } from 'expo-router';
+import AuthGuard from '../components/AuthGuard';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function HomePage() {
+  const { user, signOut } = useAuth();
+  const router = useRouter();
+
   return (
+    <AuthGuard requireAuth={false}>
+    <SafeAreaView style={styles.safeArea}>
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Peer Learning Hub</Text>
-        <Text style={styles.subtitle}>グローバル学習コミュニティへようこそ</Text>
+        <View style={styles.headerTop}>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Peer Learning Hub</Text>
+            <Text style={styles.subtitle}>グローバル学習コミュニティへようこそ</Text>
+          </View>
+          {user ? (
+            <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
+              <Text style={styles.logoutButtonText}>ログアウト</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>
+              <Text style={styles.loginButtonText}>ログイン</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        {user && (
+          <Text style={styles.welcomeText}>
+            ようこそ、{user.user_metadata?.full_name || user.email}さん
+          </Text>
+        )}
+        {!user && (
+          <Text style={styles.visitorWelcomeText}>
+            基本的な学習コンテンツを閲覧できます。すべての機能を利用するにはログインしてください。
+          </Text>
+        )}
       </View>
 
       {/* Main Content */}
       <View style={styles.content}>
         
         <View style={styles.buttonContainer}>
-          <Link href="/learning-dashboard" asChild>
-            <TouchableOpacity style={styles.actionButton}>
+          {user ? (
+            <Link href="/learning-dashboard" asChild>
+              <TouchableOpacity style={styles.actionButton}>
+                <Text style={styles.buttonIcon}>📊</Text>
+                <Text style={styles.actionButtonText}>ダッシュボード</Text>
+                <Text style={styles.buttonDescription}>ピアラーニングハブでの活動のナビゲーション</Text>
+              </TouchableOpacity>
+            </Link>
+          ) : (
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.lockedButton]}
+              onPress={() => router.push('/login')}
+            >
               <Text style={styles.buttonIcon}>📊</Text>
               <Text style={styles.actionButtonText}>ダッシュボード</Text>
               <Text style={styles.buttonDescription}>ピアラーニングハブでの活動のナビゲーション</Text>
+              <Text style={styles.lockText}>🔒 ログインが必要です</Text>
             </TouchableOpacity>
-          </Link>
+          )}
 
-          <Link href="/projects" asChild>
-            <TouchableOpacity style={styles.actionButton}>
+          {user ? (
+            <Link href="/projects" asChild>
+              <TouchableOpacity style={styles.actionButton}>
+                <Text style={styles.buttonIcon}>🚀</Text>
+                <Text style={styles.actionButtonText}>プロジェクト</Text>
+                <Text style={styles.buttonDescription}>期限付き企画。関連セミナー・イベントへの参加</Text>
+              </TouchableOpacity>
+            </Link>
+          ) : (
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.lockedButton]}
+              onPress={() => router.push('/login')}
+            >
               <Text style={styles.buttonIcon}>🚀</Text>
               <Text style={styles.actionButtonText}>プロジェクト</Text>
               <Text style={styles.buttonDescription}>期限付き企画。関連セミナー・イベントへの参加</Text>
+              <Text style={styles.lockText}>🔒 ログインが必要です</Text>
             </TouchableOpacity>
-          </Link>
+          )}
 
-          <Link href="/peer-sessions" asChild>
-            <TouchableOpacity style={styles.actionButton}>
+          {user ? (
+            <Link href="/peer-sessions" asChild>
+              <TouchableOpacity style={styles.actionButton}>
+                <Text style={styles.buttonIcon}>👥</Text>
+                <Text style={styles.actionButtonText}>ピア学習セッション</Text>
+                <Text style={styles.buttonDescription}>部活動や継続的なコミュニティへの参加</Text>
+              </TouchableOpacity>
+            </Link>
+          ) : (
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.lockedButton]}
+              onPress={() => router.push('/login')}
+            >
               <Text style={styles.buttonIcon}>👥</Text>
               <Text style={styles.actionButtonText}>ピア学習セッション</Text>
               <Text style={styles.buttonDescription}>部活動や継続的なコミュニティへの参加</Text>
+              <Text style={styles.lockText}>🔒 ログインが必要です</Text>
             </TouchableOpacity>
-          </Link>
+          )}
 
           <Link href="/community" asChild>
             <TouchableOpacity style={styles.actionButton}>
@@ -47,21 +114,45 @@ export default function HomePage() {
             </TouchableOpacity>
           </Link>
 
-          <Link href="/accommodation" asChild>
-            <TouchableOpacity style={styles.actionButton}>
+          {user ? (
+            <Link href="/accommodation" asChild>
+              <TouchableOpacity style={styles.actionButton}>
+                <Text style={styles.buttonIcon}>🏨</Text>
+                <Text style={styles.actionButtonText}>宿泊予約</Text>
+                <Text style={styles.buttonDescription}>ピアラーニングハブの公式施設の予約・履歴管理</Text>
+              </TouchableOpacity>
+            </Link>
+          ) : (
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.lockedButton]}
+              onPress={() => router.push('/login')}
+            >
               <Text style={styles.buttonIcon}>🏨</Text>
               <Text style={styles.actionButtonText}>宿泊予約</Text>
               <Text style={styles.buttonDescription}>ピアラーニングハブの公式施設の予約・履歴管理</Text>
+              <Text style={styles.lockText}>🔒 ログインが必要です</Text>
             </TouchableOpacity>
-          </Link>
+          )}
 
-          <Link href="/activity" asChild>
-            <TouchableOpacity style={styles.actionButton}>
+          {user ? (
+            <Link href="/activity" asChild>
+              <TouchableOpacity style={styles.actionButton}>
+                <Text style={styles.buttonIcon}>📅</Text>
+                <Text style={styles.actionButtonText}>活動履歴・予定管理</Text>
+                <Text style={styles.buttonDescription}>ピアラーニングハブでの活動の履歴確認と予約管理</Text>
+              </TouchableOpacity>
+            </Link>
+          ) : (
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.lockedButton]}
+              onPress={() => router.push('/login')}
+            >
               <Text style={styles.buttonIcon}>📅</Text>
               <Text style={styles.actionButtonText}>活動履歴・予定管理</Text>
               <Text style={styles.buttonDescription}>ピアラーニングハブでの活動の履歴確認と予約管理</Text>
+              <Text style={styles.lockText}>🔒 ログインが必要です</Text>
             </TouchableOpacity>
-          </Link>
+          )}
 
           <Link href="/search" asChild>
             <TouchableOpacity style={[styles.actionButton, styles.searchButton]}>
@@ -79,13 +170,25 @@ export default function HomePage() {
             </TouchableOpacity>
           </Link>
 
-          <Link href="/admin" asChild>
-            <TouchableOpacity style={[styles.actionButton, styles.adminButton]}>
+          {user ? (
+            <Link href="/admin" asChild>
+              <TouchableOpacity style={[styles.actionButton, styles.adminButton]}>
+                <Text style={styles.buttonIcon}>⚙️</Text>
+                <Text style={styles.actionButtonText}>管理者ダッシュボード</Text>
+                <Text style={styles.buttonDescription}>システム管理とユーザー管理</Text>
+              </TouchableOpacity>
+            </Link>
+          ) : (
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.lockedButton]}
+              onPress={() => router.push('/login')}
+            >
               <Text style={styles.buttonIcon}>⚙️</Text>
               <Text style={styles.actionButtonText}>管理者ダッシュボード</Text>
               <Text style={styles.buttonDescription}>システム管理とユーザー管理</Text>
+              <Text style={styles.lockText}>🔒 ログインが必要です</Text>
             </TouchableOpacity>
-          </Link>
+          )}
         </View>
 
         {/* Footer */}
@@ -96,31 +199,90 @@ export default function HomePage() {
         </View>
       </View>
     </ScrollView>
+    </SafeAreaView>
+    </AuthGuard>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#3b82f6',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f8fafc',
   },
   header: {
     backgroundColor: '#3b82f6',
-    padding: 30,
-    paddingTop: 60,
+    padding: 20,
+    paddingTop: 20,
+    paddingBottom: 30,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  titleContainer: {
+    flex: 1,
+  },
+  logoutButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    minWidth: 80,
     alignItems: 'center',
   },
+  logoutButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  loginButton: {
+    backgroundColor: 'white',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  loginButtonText: {
+    color: '#3b82f6',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  welcomeText: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  visitorWelcomeText: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
-    marginBottom: 8,
-    textAlign: 'center',
+    marginBottom: 4,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: 'rgba(255, 255, 255, 0.8)',
-    textAlign: 'center',
   },
   content: {
     padding: 20,
@@ -170,6 +332,17 @@ const styles = StyleSheet.create({
   adminButton: {
     backgroundColor: '#dc2626',
     borderColor: '#b91c1c',
+  },
+  lockedButton: {
+    backgroundColor: '#f3f4f6',
+    borderColor: '#d1d5db',
+    opacity: 0.7,
+  },
+  lockText: {
+    fontSize: 12,
+    color: '#ef4444',
+    fontWeight: '600',
+    marginTop: 4,
   },
   footer: {
     marginTop: 30,

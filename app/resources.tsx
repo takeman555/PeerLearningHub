@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
+import AuthGuard from '../components/AuthGuard';
 
 interface Resource {
   id: number;
@@ -503,6 +504,7 @@ export default function Resources() {
   );
 
   return (
+    <AuthGuard requireAuth={false}>
     <View style={styles.container}>
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
@@ -537,6 +539,7 @@ export default function Resources() {
       {activeTab === 'announcements' && renderAnnouncements()}
       {activeTab === 'help' && renderHelp()}
     </View>
+    </AuthGuard>
   );
 }
 

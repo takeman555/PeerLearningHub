@@ -1,10 +1,11 @@
 import React from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { AuthProvider } from '../contexts/AuthContext';
 
 export default function RootLayout() {
   return (
-    <>
+    <AuthProvider>
       <Stack
         screenOptions={{
           headerStyle: { 
@@ -78,8 +79,29 @@ export default function RootLayout() {
             headerStyle: { backgroundColor: '#dc2626' },
           }} 
         />
+        <Stack.Screen 
+          name="login" 
+          options={{ 
+            title: 'ログイン',
+            presentation: 'modal',
+          }} 
+        />
+        <Stack.Screen 
+          name="register" 
+          options={{ 
+            title: '新規登録',
+            presentation: 'modal',
+          }} 
+        />
+        <Stack.Screen 
+          name="forgot-password" 
+          options={{ 
+            title: 'パスワードリセット',
+            presentation: 'modal',
+          }} 
+        />
       </Stack>
       <StatusBar style="light" />
-    </>
+    </AuthProvider>
   );
 }
