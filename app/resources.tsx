@@ -41,105 +41,8 @@ export default function Resources() {
   const [cmsResources, setCmsResources] = useState<CMSResource[]>([]);
   const [loadingCmsResources, setLoadingCmsResources] = useState(false);
 
-  const [resources] = useState<Resource[]>([
-    {
-      id: 1,
-      type: 'tutorial',
-      title: 'React Native完全ガイド',
-      description: 'React Nativeの基礎から応用まで、実践的なサンプルコードと共に学習できる包括的なチュートリアルです。',
-      author: 'Tech Learning Hub',
-      url: 'https://example.com/react-native-guide',
-      difficulty: 'intermediate',
-      duration: '8時間',
-      rating: 4.8,
-      reviews: 234,
-      tags: ['React Native', 'Mobile', 'JavaScript', 'TypeScript'],
-      isFree: true,
-      language: 'ja',
-      lastUpdated: '2024-01-10'
-    },
-    {
-      id: 2,
-      type: 'video',
-      title: 'TypeScript入門講座',
-      description: '初心者向けのTypeScript講座。基本的な型システムから実践的な使い方まで動画で学習できます。',
-      author: 'Code Academy',
-      url: 'https://example.com/typescript-course',
-      difficulty: 'beginner',
-      duration: '4時間',
-      rating: 4.6,
-      reviews: 156,
-      tags: ['TypeScript', 'JavaScript', 'Programming'],
-      isFree: false,
-      price: 2980,
-      language: 'ja',
-      lastUpdated: '2024-01-08'
-    },
-    {
-      id: 3,
-      type: 'documentation',
-      title: 'Expo公式ドキュメント',
-      description: 'Expoの公式ドキュメント。最新の機能やAPIリファレンスを確認できます。',
-      author: 'Expo Team',
-      url: 'https://docs.expo.dev',
-      difficulty: 'intermediate',
-      rating: 4.9,
-      reviews: 89,
-      tags: ['Expo', 'React Native', 'Documentation'],
-      isFree: true,
-      language: 'en',
-      lastUpdated: '2024-01-12'
-    },
-    {
-      id: 4,
-      type: 'book',
-      title: 'AI・機械学習実践ハンドブック',
-      description: 'Pythonを使った機械学習の実装方法を詳しく解説した電子書籍です。',
-      author: 'Dr. AI Researcher',
-      url: 'https://example.com/ai-handbook',
-      difficulty: 'advanced',
-      duration: '読了目安: 20時間',
-      rating: 4.7,
-      reviews: 67,
-      tags: ['AI', 'Machine Learning', 'Python', 'Data Science'],
-      isFree: false,
-      price: 3500,
-      language: 'ja',
-      lastUpdated: '2024-01-05'
-    },
-    {
-      id: 5,
-      type: 'tool',
-      title: 'VS Code拡張機能集',
-      description: '開発効率を向上させるVS Code拡張機能のおすすめリストと設定方法。',
-      author: 'Dev Tools Team',
-      url: 'https://example.com/vscode-extensions',
-      difficulty: 'beginner',
-      rating: 4.5,
-      reviews: 123,
-      tags: ['VS Code', 'Tools', 'Productivity', 'Development'],
-      isFree: true,
-      language: 'multi',
-      lastUpdated: '2024-01-11'
-    },
-    {
-      id: 6,
-      type: 'course',
-      title: 'Web3開発マスターコース',
-      description: 'ブロックチェーン技術とスマートコントラクト開発を体系的に学習できるオンラインコースです。',
-      author: 'Blockchain Academy',
-      url: 'https://example.com/web3-course',
-      difficulty: 'advanced',
-      duration: '12週間',
-      rating: 4.9,
-      reviews: 45,
-      tags: ['Web3', 'Blockchain', 'Smart Contracts', 'Solidity'],
-      isFree: false,
-      price: 15000,
-      language: 'ja',
-      lastUpdated: '2024-01-09'
-    }
-  ]);
+  // 統合されたリソースシステム - すべてCMSから取得
+  const [allResources, setAllResources] = useState<CMSResource[]>([]);
 
   const [announcements] = useState<Announcement[]>([
     {
@@ -180,21 +83,59 @@ export default function Resources() {
     }
   ]);
 
-  // Load CMS resources
+  // Load all resources from CMS
   useEffect(() => {
-    loadCmsResources();
+    loadAllResources();
   }, []);
 
-  const loadCmsResources = async () => {
+  const loadAllResources = async () => {
     setLoadingCmsResources(true);
     try {
       const publishedResources = await resourceService.getResources({ published: true });
-      setCmsResources(publishedResources);
+      setAllResources(publishedResources);
+      // 注目リソース用に別途設定
+      setCmsResources(publishedResources.filter(r => r.featured));
     } catch (error) {
-      console.error('Failed to load CMS resources:', error);
+      console.error('Failed to load resources:', error);
     } finally {
       setLoadingCmsResources(false);
     }
+  };
+
+  // CMSリソースをレガシーリソース形式に変換
+  const convertCMSToLegacyResource = (cmsResource: CMSResource): Resource => {
+    const typeMapping: { [key: string]: Resource['type'] } = {
+      'article': 'tutorial',
+      'video': 'video',
+      'document': 'documentation',
+      'course': 'course',
+      'link': 'documentation'
+    };
+
+    const difficultyMapping: { [key: string]: Resource['difficulty'] } = {
+      'beginner': 'beginner',
+      'intermediate': 'intermediate',
+      'advanced': 'advanced',
+      'all_levels': 'intermediate'
+    };
+
+    return {
+      id: parseInt(cmsResource.id),
+      type: typeMapping[cmsResource.type] || 'tutorial',
+      title: cmsResource.title,
+      description: cmsResource.description,
+      author: cmsResource.author_name,
+      url: cmsResource.file_url || '#',
+      difficulty: difficultyMapping[cmsResource.level] || 'intermediate',
+      duration: cmsResource.duration ? `${Math.floor(cmsResource.duration / 60)}時間` : undefined,
+      rating: 4.5 + (cmsResource.likes / 100), // 簡易的な評価計算
+      reviews: cmsResource.views,
+      tags: cmsResource.tags,
+      isFree: !cmsResource.file_url?.includes('price'),
+      price: cmsResource.file_url?.includes('price') ? 2980 : undefined,
+      language: cmsResource.language,
+      lastUpdated: new Date(cmsResource.updated_at).toISOString().split('T')[0]
+    };
   };
 
   const getResourceIcon = (type: string) => {
@@ -277,9 +218,12 @@ export default function Resources() {
     }
   };
 
+  // CMSリソースをレガシー形式に変換
+  const legacyResources = allResources.map(convertCMSToLegacyResource);
+
   const filteredResources = resourceFilter === 'all' 
-    ? resources 
-    : resources.filter(resource => resource.type === resourceFilter);
+    ? legacyResources 
+    : legacyResources.filter(resource => resource.type === resourceFilter);
 
   const searchFilteredResources = searchQuery.trim() 
     ? filteredResources.filter(resource => 
@@ -291,7 +235,11 @@ export default function Resources() {
 
   const handleResourcePress = (resource: Resource) => {
     console.log(`Opening resource: ${resource.title}`);
-    // In a real app, this would open the resource URL
+    // CMSリソースの場合は詳細表示、外部URLの場合はブラウザで開く
+    if (resource.url && resource.url !== '#') {
+      // 実際のアプリでは外部ブラウザで開く処理を実装
+      console.log(`Opening URL: ${resource.url}`);
+    }
   };
 
   const renderResources = () => (

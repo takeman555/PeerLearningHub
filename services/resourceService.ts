@@ -98,6 +98,340 @@ function greet(name) {
     views: 89,
     likes: 7,
     language: 'ja'
+  },
+  // 既存のハードコーディングされたリソースをCMS形式に変換
+  {
+    id: '4',
+    title: 'React Native完全ガイド',
+    description: 'React Nativeの基礎から応用まで、実践的なサンプルコードと共に学習できる包括的なチュートリアルです。',
+    content: `# React Native完全ガイド
+
+## React Nativeとは
+React Nativeは、Facebookが開発したクロスプラットフォームモバイルアプリ開発フレームワークです。
+
+## 基本的なコンポーネント
+- View: レイアウトの基本要素
+- Text: テキスト表示
+- Image: 画像表示
+- ScrollView: スクロール可能なビュー
+
+## ナビゲーション
+React Navigationを使用してアプリ内のナビゲーションを実装します。
+
+## 状態管理
+- useState: ローカル状態管理
+- useContext: グローバル状態管理
+- Redux: 複雑な状態管理
+
+## 外部リンク
+[React Native公式ドキュメント](https://reactnative.dev/)`,
+    category: 'technology',
+    type: 'course',
+    level: 'intermediate',
+    tags: ['React Native', 'Mobile', 'JavaScript', 'TypeScript'],
+    author_id: 'tech-hub-1',
+    author_name: 'Tech Learning Hub',
+    created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+    published: true,
+    featured: true,
+    views: 234,
+    likes: 48,
+    duration: 480, // 8時間
+    language: 'ja',
+    file_url: 'https://example.com/react-native-guide'
+  },
+  {
+    id: '5',
+    title: 'TypeScript入門講座',
+    description: '初心者向けのTypeScript講座。基本的な型システムから実践的な使い方まで動画で学習できます。',
+    content: `# TypeScript入門講座
+
+## TypeScriptとは
+TypeScriptは、JavaScriptに静的型付けを追加したプログラミング言語です。
+
+## 基本的な型
+- string: 文字列型
+- number: 数値型
+- boolean: 真偽値型
+- array: 配列型
+- object: オブジェクト型
+
+## インターフェース
+\`\`\`typescript
+interface User {
+  name: string;
+  age: number;
+  email: string;
+}
+\`\`\`
+
+## 関数の型定義
+\`\`\`typescript
+function greet(name: string): string {
+  return \`Hello, \${name}!\`;
+}
+\`\`\`
+
+## ジェネリクス
+\`\`\`typescript
+function identity<T>(arg: T): T {
+  return arg;
+}
+\`\`\``,
+    category: 'technology',
+    type: 'video',
+    level: 'beginner',
+    tags: ['TypeScript', 'JavaScript', 'Programming'],
+    author_id: 'code-academy-1',
+    author_name: 'Code Academy',
+    created_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    published: true,
+    featured: false,
+    views: 156,
+    likes: 46,
+    duration: 240, // 4時間
+    language: 'ja',
+    file_url: 'https://example.com/typescript-course'
+  },
+  {
+    id: '6',
+    title: 'Expo公式ドキュメント',
+    description: 'Expoの公式ドキュメント。最新の機能やAPIリファレンスを確認できます。',
+    content: `# Expo公式ドキュメント
+
+## Expoとは
+Expoは、React Nativeアプリの開発、ビルド、デプロイを簡単にするプラットフォームです。
+
+## 主な機能
+- Expo CLI: コマンドラインツール
+- Expo SDK: 豊富なAPIライブラリ
+- Expo Go: 開発用アプリ
+- EAS Build: クラウドビルドサービス
+
+## 開発の流れ
+1. プロジェクト作成
+2. 開発・テスト
+3. ビルド
+4. デプロイ
+
+## 便利なAPI
+- Camera: カメラ機能
+- Location: 位置情報
+- Notifications: プッシュ通知
+- FileSystem: ファイル操作
+
+詳細は公式ドキュメントをご確認ください。`,
+    category: 'technology',
+    type: 'document',
+    level: 'intermediate',
+    tags: ['Expo', 'React Native', 'Documentation'],
+    author_id: 'expo-team-1',
+    author_name: 'Expo Team',
+    created_at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
+    published: true,
+    featured: false,
+    views: 89,
+    likes: 49,
+    language: 'en',
+    file_url: 'https://docs.expo.dev'
+  },
+  {
+    id: '7',
+    title: 'AI・機械学習実践ハンドブック',
+    description: 'Pythonを使った機械学習の実装方法を詳しく解説した電子書籍です。',
+    content: `# AI・機械学習実践ハンドブック
+
+## 機械学習の基礎
+機械学習は、データからパターンを学習し、予測や分類を行う技術です。
+
+## 主要なライブラリ
+- NumPy: 数値計算
+- Pandas: データ操作
+- Scikit-learn: 機械学習
+- TensorFlow: ディープラーニング
+- PyTorch: ディープラーニング
+
+## 機械学習の種類
+1. 教師あり学習
+   - 分類
+   - 回帰
+2. 教師なし学習
+   - クラスタリング
+   - 次元削減
+3. 強化学習
+
+## 実践例
+\`\`\`python
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+
+# データ読み込み
+data = pd.read_csv('data.csv')
+
+# 特徴量とターゲットに分割
+X = data.drop('target', axis=1)
+y = data['target']
+
+# 訓練・テストデータに分割
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# モデル訓練
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# 予測
+predictions = model.predict(X_test)
+\`\`\``,
+    category: 'technology',
+    type: 'document',
+    level: 'advanced',
+    tags: ['AI', 'Machine Learning', 'Python', 'Data Science'],
+    author_id: 'ai-researcher-1',
+    author_name: 'Dr. AI Researcher',
+    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    published: true,
+    featured: true,
+    views: 67,
+    likes: 47,
+    duration: 1200, // 読了目安: 20時間
+    language: 'ja',
+    file_url: 'https://example.com/ai-handbook'
+  },
+  {
+    id: '8',
+    title: 'VS Code拡張機能集',
+    description: '開発効率を向上させるVS Code拡張機能のおすすめリストと設定方法。',
+    content: `# VS Code拡張機能集
+
+## 必須拡張機能
+
+### 言語サポート
+- **TypeScript Hero**: TypeScript開発支援
+- **Python**: Python開発環境
+- **ES7+ React/Redux/React-Native snippets**: React開発用スニペット
+
+### コード品質
+- **ESLint**: JavaScript/TypeScriptのリンター
+- **Prettier**: コードフォーマッター
+- **SonarLint**: コード品質チェック
+
+### 開発効率
+- **Auto Rename Tag**: HTMLタグの自動リネーム
+- **Bracket Pair Colorizer**: 括弧の色分け
+- **GitLens**: Git機能拡張
+- **Live Server**: ローカルサーバー起動
+
+### テーマ・UI
+- **Material Theme**: マテリアルデザインテーマ
+- **vscode-icons**: ファイルアイコン
+- **Indent Rainbow**: インデントの色分け
+
+## 設定方法
+1. VS Codeを開く
+2. 拡張機能タブ（Ctrl+Shift+X）を開く
+3. 拡張機能名で検索
+4. インストールボタンをクリック
+
+## おすすめ設定
+\`\`\`json
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "prettier.singleQuote": true,
+  "prettier.semi": false
+}
+\`\`\``,
+    category: 'technology',
+    type: 'article',
+    level: 'beginner',
+    tags: ['VS Code', 'Tools', 'Productivity', 'Development'],
+    author_id: 'dev-tools-1',
+    author_name: 'Dev Tools Team',
+    created_at: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString(),
+    published: true,
+    featured: false,
+    views: 123,
+    likes: 45,
+    language: 'ja',
+    file_url: 'https://example.com/vscode-extensions'
+  },
+  {
+    id: '9',
+    title: 'Web3開発マスターコース',
+    description: 'ブロックチェーン技術とスマートコントラクト開発を体系的に学習できるオンラインコースです。',
+    content: `# Web3開発マスターコース
+
+## Web3とは
+Web3は、ブロックチェーン技術を基盤とした分散型インターネットの概念です。
+
+## 学習内容
+
+### ブロックチェーン基礎
+- ブロックチェーンの仕組み
+- 暗号化技術
+- 分散型ネットワーク
+- コンセンサスアルゴリズム
+
+### Ethereum開発
+- Ethereumの基礎
+- Solidityプログラミング
+- スマートコントラクト開発
+- DApp（分散型アプリケーション）構築
+
+### 開発ツール
+- **Hardhat**: 開発フレームワーク
+- **Truffle**: 開発・テストツール
+- **MetaMask**: ウォレット連携
+- **Web3.js**: JavaScriptライブラリ
+
+## サンプルコード
+\`\`\`solidity
+pragma solidity ^0.8.0;
+
+contract SimpleStorage {
+    uint256 private storedData;
+    
+    function set(uint256 x) public {
+        storedData = x;
+    }
+    
+    function get() public view returns (uint256) {
+        return storedData;
+    }
+}
+\`\`\`
+
+## プロジェクト例
+1. ERC-20トークン作成
+2. NFTマーケットプレイス
+3. DeFiプロトコル
+4. DAO（分散自律組織）
+
+## 学習期間
+12週間の集中コースで、実践的なプロジェクトを通じて学習します。`,
+    category: 'technology',
+    type: 'course',
+    level: 'advanced',
+    tags: ['Web3', 'Blockchain', 'Smart Contracts', 'Solidity'],
+    author_id: 'blockchain-academy-1',
+    author_name: 'Blockchain Academy',
+    created_at: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
+    published: true,
+    featured: true,
+    views: 45,
+    likes: 49,
+    duration: 5040, // 12週間 (分換算)
+    language: 'ja',
+    file_url: 'https://example.com/web3-course'
   }
 ];
 
