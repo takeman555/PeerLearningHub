@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import AuthGuard from '../components/AuthGuard';
+import { useAuth } from '../contexts/AuthContext';
+import { hasAdminAccess, getUserPermissions } from '../utils/permissions';
 
 interface User {
   id: number;
@@ -38,9 +40,11 @@ interface Report {
 
 export default function Admin() {
   const router = useRouter();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'content' | 'reports' | 'settings'>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // All hooks must be called before any conditional returns
   const [systemStats] = useState<SystemStats>({
     totalUsers: 1247,
     activeUsers: 892,
@@ -133,6 +137,31 @@ export default function Admin() {
       priority: 'low'
     }
   ]);
+
+  // Check if user has admin access (after all hooks)
+  const userRole = user?.user_metadata?.role;
+
+  // If user doesn't have admin access, show access denied
+  if (!hasAdminAccess(userRole)) {
+    return (
+      <AuthGuard>
+        <View style={styles.accessDeniedContainer}>
+          <Text style={styles.accessDeniedIcon}>🚫</Text>
+          <Text style={styles.accessDeniedTitle}>アクセス拒否</Text>
+          <Text style={styles.accessDeniedText}>
+            この画面にアクセスする権限がありません。{'\n'}
+            管理者権限が必要です。
+          </Text>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.push('/')}
+          >
+            <Text style={styles.backButtonText}>ホームに戻る</Text>
+          </TouchableOpacity>
+        </View>
+      </AuthGuard>
+    );
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -936,5 +965,42 @@ const styles = StyleSheet.create({
   settingArrow: {
     fontSize: 18,
     color: '#9ca3af',
+  },
+  // Access Denied Styles
+  accessDeniedContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    padding: 40,
+  },
+  accessDeniedIcon: {
+    fontSize: 64,
+    marginBottom: 20,
+  },
+  accessDeniedTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#dc2626',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  accessDeniedText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 32,
+  },
+  backButton: {
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  backButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

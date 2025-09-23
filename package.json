@@ -6,7 +6,17 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "check-env": "node scripts/checkEnv.js",
+    "migrate": "node scripts/runMigrations.js",
+    "db:setup": "node scripts/runMigrations.js",
+    "db:test": "node scripts/testDatabaseSetup.js",
+    "test:auth": "node scripts/testAuth.js",
+    "test:ui": "node tests/ui-validation.test.js",
+    "setup:dev": "node scripts/disableEmailConfirmation.js",
+    "reset:password": "node scripts/manualPasswordReset.js",
+    "test:mock-auth": "node tests/mock-auth-integration.test.js",
+    "setup:supabase": "node scripts/testSupabaseConnection.js"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
@@ -22,7 +32,8 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "dotenv": "^16.4.7"
   },
   "private": true
 }

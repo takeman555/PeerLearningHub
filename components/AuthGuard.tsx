@@ -24,9 +24,8 @@ export default function AuthGuard({ children, requireAuth = true }: AuthGuardPro
     return <Redirect href="/login" />;
   }
 
-  if (!requireAuth && user) {
-    return <Redirect href="/" />;
-  }
+  // Remove automatic redirect for authenticated users
+  // This was causing redirect loops
 
   return <>{children}</>;
 }

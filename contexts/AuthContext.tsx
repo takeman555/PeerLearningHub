@@ -24,36 +24,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     // Get initial session
     const getInitialSession = async () => {
       try {
         const currentSession = await authService.getCurrentSession();
         const currentUser = await authService.getCurrentUser();
         
-        setSession(currentSession);
-        setUser(currentUser);
+        if (isMounted) {
+          setSession(currentSession);
+          setUser(currentUser);
+          setLoading(false);
+        }
       } catch (error) {
         console.error('Error getting initial session:', error);
-      } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     getInitialSession();
 
-    // Listen for auth changes
-    const { data: { subscription } } = authService.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session);
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
+    // Skip auth state change listeners to prevent infinite loops
+    // All state management is handled manually in signIn/signUp/signOut methods
 
     return () => {
-      subscription?.unsubscribe();
+      isMounted = false;
     };
   }, []);
 
@@ -63,16 +61,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { user, session, error } = await authService.signIn({ email, password });
       
       if (error) {
+        setLoading(false);
         return { error };
       }
 
-      setUser(user);
-      setSession(session);
+      // For mock auth, manually update state since listeners don't work
+      if (user && session) {
+        setSession(session);
+        setUser(user);
+      }
+      setLoading(false);
+      
       return { error: null };
     } catch (error) {
-      return { error };
-    } finally {
+      console.error('SignIn error in context:', error);
       setLoading(false);
+      return { error };
     }
   };
 
@@ -87,16 +91,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
       
       if (error) {
+        setLoading(false);
         return { error };
       }
 
-      setUser(user);
-      setSession(session);
+      // For mock auth, manually update state since listeners don't work
+      if (user && session) {
+        setSession(session);
+        setUser(user);
+      }
+      setLoading(false);
+      
       return { error: null };
     } catch (error) {
-      return { error };
-    } finally {
+      console.error('SignUp error in context:', error);
       setLoading(false);
+      return { error };
     }
   };
 

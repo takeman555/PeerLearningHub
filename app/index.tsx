@@ -4,10 +4,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, useRouter } from 'expo-router';
 import AuthGuard from '../components/AuthGuard';
 import { useAuth } from '../contexts/AuthContext';
+import { SupabaseConnectionTest } from '../components/SupabaseConnectionTest';
+import DevTestUser from '../components/DevTestUser';
+import { hasAdminAccess, getRoleDisplayText } from '../utils/permissions';
 
 export default function HomePage() {
   const { user, signOut } = useAuth();
   const router = useRouter();
+  
+  // Get user role for permission checks
+  const userRole = user?.user_metadata?.role;
 
   return (
     <AuthGuard requireAuth={false}>
@@ -31,9 +37,14 @@ export default function HomePage() {
           )}
         </View>
         {user && (
-          <Text style={styles.welcomeText}>
-            ようこそ、{user.user_metadata?.full_name || user.email}さん
-          </Text>
+          <View style={styles.welcomeContainer}>
+            <Text style={styles.welcomeText}>
+              ようこそ、{user.user_metadata?.full_name || user.email}さん
+            </Text>
+            <Text style={styles.roleText}>
+              {getRoleDisplayText(userRole)}
+            </Text>
+          </View>
         )}
         {!user && (
           <Text style={styles.visitorWelcomeText}>
@@ -41,6 +52,12 @@ export default function HomePage() {
           </Text>
         )}
       </View>
+
+      {/* Supabase Connection Test - Remove this after setup is complete */}
+      <SupabaseConnectionTest />
+      
+      {/* Development Test User Component - Remove this in production */}
+      {!user && <DevTestUser />}
 
       {/* Main Content */}
       <View style={styles.content}>
@@ -170,7 +187,7 @@ export default function HomePage() {
             </TouchableOpacity>
           </Link>
 
-          {user ? (
+          {user && hasAdminAccess(userRole) ? (
             <Link href="/admin" asChild>
               <TouchableOpacity style={[styles.actionButton, styles.adminButton]}>
                 <Text style={styles.buttonIcon}>⚙️</Text>
@@ -178,6 +195,16 @@ export default function HomePage() {
                 <Text style={styles.buttonDescription}>システム管理とユーザー管理</Text>
               </TouchableOpacity>
             </Link>
+          ) : user ? (
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.lockedButton]}
+              onPress={() => router.push('/login')}
+            >
+              <Text style={styles.buttonIcon}>⚙️</Text>
+              <Text style={styles.actionButtonText}>管理者ダッシュボード</Text>
+              <Text style={styles.buttonDescription}>システム管理とユーザー管理</Text>
+              <Text style={styles.lockText}>🔒 管理者権限が必要です</Text>
+            </TouchableOpacity>
           ) : (
             <TouchableOpacity 
               style={[styles.actionButton, styles.lockedButton]}
@@ -261,11 +288,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
+  welcomeContainer: {
+    alignItems: 'center',
+    marginTop: 8,
+  },
   welcomeText: {
     color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 14,
     textAlign: 'center',
-    marginTop: 8,
+  },
+  roleText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 2,
+    fontStyle: 'italic',
   },
   visitorWelcomeText: {
     color: 'rgba(255, 255, 255, 0.8)',
