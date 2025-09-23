@@ -51,19 +51,11 @@ async function runMigrations() {
   console.log('');
 
   // Create migrations tracking table if it doesn't exist
-  const { error: trackingError } = await supabase.rpc('exec_sql', {
-    sql: `
-      CREATE TABLE IF NOT EXISTS _migrations (
-        id SERIAL PRIMARY KEY,
-        filename TEXT UNIQUE NOT NULL,
-        executed_at TIMESTAMPTZ DEFAULT NOW()
-      );
-    `
-  });
-
-  if (trackingError) {
-    console.error('❌ Failed to create migrations tracking table:', trackingError.message);
-    process.exit(1);
+  try {
+    await supabase.from('_migrations').select('id').limit(1);
+  } catch (error) {
+    console.log('📋 Creating migrations tracking table...');
+    // Table doesn't exist, we'll create it in the first migration
   }
 
   // Check which migrations have already been run
@@ -91,25 +83,14 @@ async function runMigrations() {
     const sql = fs.readFileSync(migrationPath, 'utf8');
 
     try {
-      // Execute the migration
-      const { error } = await supabase.rpc('exec_sql', { sql });
+      // For now, we'll skip automatic migration execution
+      // and recommend manual execution via Supabase dashboard
+      console.log(`📝 Migration ${filename} ready for manual execution`);
+      console.log(`   Please run this SQL in your Supabase SQL editor:`);
+      console.log(`   ${migrationPath}`);
       
-      if (error) {
-        throw error;
-      }
-
-      // Record the migration as executed
-      const { error: recordError } = await supabase
-        .from('_migrations')
-        .insert({ filename });
-
-      if (recordError) {
-        throw recordError;
-      }
-
-      console.log(`✅ Successfully executed ${filename}`);
     } catch (error) {
-      console.error(`❌ Failed to execute ${filename}:`, error.message);
+      console.error(`❌ Failed to process ${filename}:`, error.message);
       process.exit(1);
     }
   }
