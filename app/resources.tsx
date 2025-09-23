@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import AuthGuard from '../components/AuthGuard';
+import resourceService from '../services/resourceService';
+import { Resource as CMSResource } from '../types/resources';
 
 interface Resource {
   id: number;
@@ -36,6 +38,8 @@ export default function Resources() {
   const [activeTab, setActiveTab] = useState<'resources' | 'announcements' | 'help'>('resources');
   const [resourceFilter, setResourceFilter] = useState<'all' | 'tutorial' | 'documentation' | 'video' | 'book' | 'tool' | 'course'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [cmsResources, setCmsResources] = useState<CMSResource[]>([]);
+  const [loadingCmsResources, setLoadingCmsResources] = useState(false);
 
   const [resources] = useState<Resource[]>([
     {
@@ -175,6 +179,23 @@ export default function Resources() {
       isRead: false
     }
   ]);
+
+  // Load CMS resources
+  useEffect(() => {
+    loadCmsResources();
+  }, []);
+
+  const loadCmsResources = async () => {
+    setLoadingCmsResources(true);
+    try {
+      const publishedResources = await resourceService.getResources({ published: true });
+      setCmsResources(publishedResources);
+    } catch (error) {
+      console.error('Failed to load CMS resources:', error);
+    } finally {
+      setLoadingCmsResources(false);
+    }
+  };
 
   const getResourceIcon = (type: string) => {
     switch (type) {
@@ -320,6 +341,40 @@ export default function Resources() {
           </View>
         </ScrollView>
       </View>
+
+      {/* CMS Resources Section */}
+      {cmsResources.length > 0 && (
+        <View style={styles.cmsResourcesSection}>
+          <Text style={styles.sectionTitle}>📚 学習リソース</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cmsResourcesScroll}>
+            <View style={styles.cmsResourcesContainer}>
+              {cmsResources.slice(0, 5).map((resource) => (
+                <TouchableOpacity key={resource.id} style={styles.cmsResourceCard}>
+                  <View style={styles.cmsResourceHeader}>
+                    <Text style={styles.cmsResourceTitle}>{resource.title}</Text>
+                    {resource.featured && (
+                      <View style={styles.featuredBadge}>
+                        <Text style={styles.featuredText}>注目</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.cmsResourceDescription} numberOfLines={2}>
+                    {resource.description}
+                  </Text>
+                  <View style={styles.cmsResourceMeta}>
+                    <Text style={styles.cmsResourceCategory}>{resource.category}</Text>
+                    <Text style={styles.cmsResourceLevel}>{resource.level}</Text>
+                  </View>
+                  <View style={styles.cmsResourceStats}>
+                    <Text style={styles.cmsResourceStat}>👁 {resource.views}</Text>
+                    <Text style={styles.cmsResourceStat}>❤️ {resource.likes}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+      )}
 
       {/* Resources List */}
       <View style={styles.resourcesContainer}>
@@ -956,6 +1011,94 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#3b82f6',
     fontWeight: '500',
+  },
+  // CMS Resources Styles
+  cmsResourcesSection: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 12,
+  },
+  cmsResourcesScroll: {
+    flexGrow: 0,
+  },
+  cmsResourcesContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingRight: 20,
+  },
+  cmsResourceCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    width: 280,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cmsResourceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  cmsResourceTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    flex: 1,
+    marginRight: 8,
+  },
+  featuredBadge: {
+    backgroundColor: '#dbeafe',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  featuredText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#1e40af',
+  },
+  cmsResourceDescription: {
+    fontSize: 14,
+    color: '#6b7280',
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  cmsResourceMeta: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  cmsResourceCategory: {
+    fontSize: 12,
+    color: '#3b82f6',
+    backgroundColor: '#dbeafe',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  cmsResourceLevel: {
+    fontSize: 12,
+    color: '#059669',
+    backgroundColor: '#d1fae5',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  cmsResourceStats: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cmsResourceStat: {
+    fontSize: 12,
+    color: '#9ca3af',
   },
   // Empty State
   emptyContainer: {

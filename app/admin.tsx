@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import AuthGuard from '../components/AuthGuard';
 import { useAuth } from '../contexts/AuthContext';
-import { hasAdminAccess, getUserPermissions } from '../utils/permissions';
+import { hasAdminAccess } from '../utils/permissions';
+import ResourceEditor from '../components/ResourceEditor';
+import resourceService from '../services/resourceService';
+import { Resource } from '../types/resources';
 
 interface User {
   id: number;
@@ -43,6 +46,10 @@ export default function Admin() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'content' | 'reports' | 'settings'>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showResourceEditor, setShowResourceEditor] = useState(false);
+  const [editingResource, setEditingResource] = useState<Resource | undefined>();
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [loadingResources, setLoadingResources] = useState(false);
 
   // All hooks must be called before any conditional returns
   const [systemStats] = useState<SystemStats>({
@@ -137,6 +144,64 @@ export default function Admin() {
       priority: 'low'
     }
   ]);
+
+  // Load resources when content tab is active
+  useEffect(() => {
+    if (activeTab === 'content') {
+      loadResources();
+    }
+  }, [activeTab]);
+
+  const loadResources = async () => {
+    setLoadingResources(true);
+    try {
+      const allResources = await resourceService.getResources();
+      setResources(allResources);
+    } catch (error) {
+      console.error('Failed to load resources:', error);
+    } finally {
+      setLoadingResources(false);
+    }
+  };
+
+  const handleCreateResource = () => {
+    setEditingResource(undefined);
+    setShowResourceEditor(true);
+  };
+
+  const handleEditResource = (resource: Resource) => {
+    setEditingResource(resource);
+    setShowResourceEditor(true);
+  };
+
+  const handleDeleteResource = (resource: Resource) => {
+    Alert.alert(
+      'リソースを削除',
+      `「${resource.title}」を削除しますか？この操作は取り消せません。`,
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        {
+          text: '削除',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await resourceService.deleteResource(resource.id);
+              loadResources();
+              Alert.alert('成功', 'リソースが削除されました。');
+            } catch (error) {
+              Alert.alert('エラー', 'リソースの削除に失敗しました。');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleResourceSaved = () => {
+    setShowResourceEditor(false);
+    setEditingResource(undefined);
+    loadResources();
+  };
 
   // Check if user has admin access (after all hooks)
   const userRole = user?.user_metadata?.role;
@@ -468,6 +533,106 @@ export default function Admin() {
     </ScrollView>
   );
 
+  const renderContentManagement = () => (
+    <View style={styles.tabContent}>
+      <View style={styles.contentHeader}>
+        <Text style={styles.sectionTitle}>📝 コンテンツ管理</Text>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={handleCreateResource}
+        >
+          <Text style={styles.createButtonText}>+ 新規作成</Text>
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.searchContainer}>
+        <View style={styles.searchInputContainer}>
+          <Text style={styles.searchIcon}>🔍</Text>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="リソースを検索..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+      </View>
+
+      {loadingResources ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>読み込み中...</Text>
+        </View>
+      ) : (
+        <ScrollView style={styles.resourceList}>
+          {resources
+            .filter(resource => 
+              !searchQuery || 
+              resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              resource.description.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+            .map(resource => (
+              <View key={resource.id} style={styles.resourceItem}>
+                <View style={styles.resourceInfo}>
+                  <Text style={styles.resourceTitle}>{resource.title}</Text>
+                  <Text style={styles.resourceDescription}>{resource.description}</Text>
+                  <View style={styles.resourceMeta}>
+                    <Text style={styles.resourceMetaText}>
+                      {resource.category} • {resource.type} • {resource.level}
+                    </Text>
+                    <Text style={styles.resourceStats}>
+                      👁 {resource.views} • ❤️ {resource.likes}
+                    </Text>
+                  </View>
+                  <View style={styles.resourceTags}>
+                    {resource.tags.map(tag => (
+                      <View key={tag} style={styles.tag}>
+                        <Text style={styles.tagText}>{tag}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+                <View style={styles.resourceActions}>
+                  <View style={styles.statusBadge}>
+                    <Text style={[
+                      styles.statusText,
+                      resource.published ? styles.publishedStatus : styles.draftStatus
+                    ]}>
+                      {resource.published ? '公開' : '下書き'}
+                    </Text>
+                  </View>
+                  {resource.featured && (
+                    <View style={styles.featuredBadge}>
+                      <Text style={styles.featuredText}>注目</Text>
+                    </View>
+                  )}
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => handleEditResource(resource)}
+                  >
+                    <Text style={styles.actionButtonText}>編集</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.dangerButton]}
+                    onPress={() => handleDeleteResource(resource)}
+                  >
+                    <Text style={styles.dangerButtonText}>削除</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          }
+          {resources.length === 0 && (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>リソースがありません</Text>
+              <Text style={styles.emptyStateDescription}>
+                「新規作成」ボタンから最初のリソースを作成しましょう
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+      )}
+    </View>
+  );
+
   const renderSettings = () => (
     <ScrollView style={styles.tabContent}>
       <View style={styles.settingsContainer}>
@@ -561,8 +726,24 @@ export default function Admin() {
       {/* Tab Content */}
       {activeTab === 'dashboard' && renderDashboard()}
       {activeTab === 'users' && renderUsers()}
+      {activeTab === 'content' && renderContentManagement()}
       {activeTab === 'reports' && renderReports()}
       {activeTab === 'settings' && renderSettings()}
+
+      <Modal
+        visible={showResourceEditor}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <ResourceEditor
+          resource={editingResource}
+          onSave={handleResourceSaved}
+          onCancel={() => {
+            setShowResourceEditor(false);
+            setEditingResource(undefined);
+          }}
+        />
+      </Modal>
     </View>
     </AuthGuard>
   );
@@ -1002,5 +1183,125 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  // Content Management Styles
+  contentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  createButton: {
+    backgroundColor: '#10b981',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  createButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  resourceList: {
+    flex: 1,
+  },
+  resourceItem: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  resourceInfo: {
+    flex: 1,
+    marginBottom: 12,
+  },
+  resourceTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  resourceDescription: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  resourceMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  resourceMetaText: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  resourceStats: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  resourceTags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+  },
+  tag: {
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  tagText: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  resourceActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  publishedStatus: {
+    backgroundColor: '#d1fae5',
+    color: '#065f46',
+  },
+  draftStatus: {
+    backgroundColor: '#fef3c7',
+    color: '#92400e',
+  },
+  featuredBadge: {
+    backgroundColor: '#dbeafe',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  featuredText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1e40af',
+  },
+  emptyState: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  emptyStateDescription: {
+    fontSize: 14,
+    color: '#9ca3af',
+    textAlign: 'center',
   },
 });
