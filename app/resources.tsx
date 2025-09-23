@@ -119,6 +119,13 @@ export default function Resources() {
       'all_levels': 'intermediate'
     };
 
+    const languageMapping: { [key: string]: Resource['language'] } = {
+      'ja': 'ja',
+      'en': 'en',
+      'ko': 'multi', // 韓国語はmultiにマッピング
+      'multi': 'multi'
+    };
+
     return {
       id: parseInt(cmsResource.id),
       type: typeMapping[cmsResource.type] || 'tutorial',
@@ -133,7 +140,7 @@ export default function Resources() {
       tags: cmsResource.tags,
       isFree: !cmsResource.file_url?.includes('price'),
       price: cmsResource.file_url?.includes('price') ? 2980 : undefined,
-      language: cmsResource.language,
+      language: languageMapping[cmsResource.language] || 'multi',
       lastUpdated: new Date(cmsResource.updated_at).toISOString().split('T')[0]
     };
   };
