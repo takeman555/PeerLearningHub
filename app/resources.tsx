@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Linking, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import AuthGuard from '../components/AuthGuard';
 import resourceService from '../services/resourceService';
 import announcementService, { Announcement } from '../services/announcementService';
@@ -46,6 +47,15 @@ export default function Resources() {
     loadAllResources();
     loadAnnouncements();
   }, []);
+
+  // Reload announcements when screen comes into focus (after editing)
+  useFocusEffect(
+    useCallback(() => {
+      if (activeTab === 'announcements') {
+        loadAnnouncements();
+      }
+    }, [activeTab])
+  );
 
   const loadAllResources = async () => {
     setLoadingCmsResources(true);
@@ -477,12 +487,7 @@ export default function Resources() {
           
           <View style={styles.faqItem}>
             <Text style={styles.faqQuestion}>Q. 宿泊施設の予約をキャンセルできますか？</Text>
-            <Text style={styles.faqAnswer}>A. 予約履歴画面から該当する予約を選択し、キャンセルボタンからお手続きいただけます。キャンセル料については各施設の規定に従います。</Text>
-          </View>
-          
-          <View style={styles.faqItem}>
-            <Text style={styles.faqQuestion}>Q. 学習ポイントはどのように獲得できますか？</Text>
-            <Text style={styles.faqAnswer}>A. プロジェクトの完了、セッションへの参加、コミュニティへの貢献などでポイントを獲得できます。</Text>
+            <Text style={styles.faqAnswer}>A. 宿泊施設のキャンセルについては予約した外部サイトをご利用ください。</Text>
           </View>
         </View>
         
@@ -596,7 +601,11 @@ export default function Resources() {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'announcements' && styles.activeTab]}
-          onPress={() => setActiveTab('announcements')}
+          onPress={() => {
+            setActiveTab('announcements');
+            // お知らせタブに切り替えた時にデータを再読み込み
+            loadAnnouncements();
+          }}
         >
           <Text style={[styles.tabText, activeTab === 'announcements' && styles.activeTabText]}>
             お知らせ

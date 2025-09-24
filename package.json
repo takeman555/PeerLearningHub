@@ -18,7 +18,12 @@
     "test:mock-auth": "node tests/mock-auth-integration.test.js",
     "setup:supabase": "node scripts/testSupabaseConnection.js",
     "setup:database": "node scripts/setupDatabase.js",
-    "add:mock-users": "node scripts/addMockUsers.js"
+    "add:mock-users": "node scripts/addMockUsers.js",
+    "test:permissions": "node tests/permissionManager.test.js",
+    "test:permissions-ts": "npx ts-node tests/permissionManager.test.ts",
+    "test:permissions-integration": "npx ts-node tests/permissionManager.integration.test.ts",
+    "test:cleanup": "npx ts-node tests/dataCleanupService.test.ts",
+    "test:cleanup-integration": "node tests/dataCleanupService.integration.test.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",

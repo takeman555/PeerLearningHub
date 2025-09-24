@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Linking, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import AuthGuard from '../components/AuthGuard';
 
@@ -15,6 +15,7 @@ interface SearchResult {
   rating?: number;
   tags: string[];
   availability?: boolean;
+  url?: string;
 }
 
 export default function Search() {
@@ -45,14 +46,12 @@ export default function Search() {
     {
       id: 3,
       type: 'accommodation',
-      title: 'Tokyo Learning Hub Hotel',
-      description: '東京中心部にある学習者向けホテル。24時間利用可能なコワーキングスペースと図書館を完備。',
-      location: '東京, 日本',
-      price: 12000,
-      currency: 'JPY',
-      rating: 4.8,
-      tags: ['Hotel', 'Coworking', 'Library', 'Tokyo'],
-      availability: true
+      title: 'Sanuki Peer Learning Hub',
+      description: '香川県にあるピアラーニング専用施設。コワーキングスペースと食事サービスを提供。学習者同士の交流に最適。',
+      location: '香川, 日本',
+      tags: ['AirBnB', 'Coworking', '食事'],
+      availability: true,
+      url: 'https://www.airbnb.jp/rooms/1406333733661938726'
     },
     {
       id: 4,
@@ -74,14 +73,12 @@ export default function Search() {
     {
       id: 6,
       type: 'accommodation',
-      title: 'Bali Digital Nomad Retreat',
-      description: 'デジタルノマド向けのリトリート施設。自然に囲まれた環境で集中して学習できます。',
-      location: 'バリ, インドネシア',
-      price: 45,
-      currency: 'USD',
-      rating: 4.9,
+      title: 'vKirirom Pine Resort',
+      description: '自然豊かなキリロム国立公園内のリゾート施設。静寂な環境で集中して学習できます。',
+      location: 'キリロム, カンボジア',
       tags: ['Retreat', 'Digital Nomad', 'Nature', 'Bali'],
-      availability: true
+      availability: true,
+      url: 'https://www.vkirirom.com'
     },
     {
       id: 7,
@@ -178,7 +175,30 @@ export default function Search() {
         router.push('/peer-sessions');
         break;
       case 'accommodation':
-        router.push('/accommodation');
+        if (result.url) {
+          // 外部URLがある場合は外部リンクを開く
+          Linking.canOpenURL(result.url)
+            .then((supported) => {
+              if (supported) {
+                return Linking.openURL(result.url!);
+              } else {
+                Alert.alert(
+                  'リンクを開けません',
+                  `以下のURLを手動でブラウザで開いてください：\n${result.url}`,
+                  [{ text: 'OK' }]
+                );
+              }
+            })
+            .catch((err) => {
+              console.error('URL open error:', err);
+              Alert.alert(
+                'エラー',
+                `リンクを開けませんでした：\n${result.url}`
+              );
+            });
+        } else {
+          router.push('/accommodation');
+        }
         break;
       case 'resource':
         router.push('/resources');
@@ -304,19 +324,22 @@ export default function Search() {
                 </View>
               </View>
               
-              {/* Price/Rating */}
+              {/* Price/Rating - 宿泊施設の場合は表示しない */}
               <View style={styles.resultMeta}>
-                {result.price && (
+                {result.price && result.type !== 'accommodation' && (
                   <Text style={styles.resultPrice}>
                     {result.currency === 'JPY' ? '¥' : result.currency === 'USD' ? '$' : '€'}
                     {result.price.toLocaleString()}
                   </Text>
                 )}
-                {result.rating && (
+                {result.rating && result.type !== 'accommodation' && (
                   <Text style={styles.resultRating}>⭐ {result.rating}</Text>
                 )}
                 {result.date && (
                   <Text style={styles.resultDate}>{result.date}</Text>
+                )}
+                {result.url && result.type === 'accommodation' && (
+                  <Text style={styles.externalLinkText}>🔗 外部サイト</Text>
                 )}
               </View>
             </View>
@@ -673,6 +696,11 @@ const styles = StyleSheet.create({
     borderColor: '#dbeafe',
   },
   suggestionText: {
+    fontSize: 12,
+    color: '#3b82f6',
+    fontWeight: '500',
+  },
+  externalLinkText: {
     fontSize: 12,
     color: '#3b82f6',
     fontWeight: '500',
