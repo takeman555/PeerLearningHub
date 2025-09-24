@@ -7,9 +7,10 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
-  Switch
+  Switch,
+  Modal,
+  FlatList
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import { Resource, CreateResourceRequest, ResourceCategory, ResourceType, LearningLevel } from '../types/resources';
 import resourceService from '../services/resourceService';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,6 +24,9 @@ interface ResourceEditorProps {
 const ResourceEditor: React.FC<ResourceEditorProps> = ({ resource, onSave, onCancel }) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showTypeModal, setShowTypeModal] = useState(false);
+  const [showLevelModal, setShowLevelModal] = useState(false);
   
   const [formData, setFormData] = useState({
     title: resource?.title || '',
@@ -161,64 +165,66 @@ const ResourceEditor: React.FC<ResourceEditorProps> = ({ resource, onSave, onCan
         <View style={styles.row}>
           <View style={styles.halfField}>
             <Text style={styles.label}>カテゴリー</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={formData.category}
-                onValueChange={(value) => setFormData({ ...formData, category: value })}
-                style={styles.picker}
-              >
-                {categories.map(cat => (
-                  <Picker.Item key={cat.value} label={cat.label} value={cat.value} />
-                ))}
-              </Picker>
-            </View>
+            <TouchableOpacity
+              style={styles.selectorButton}
+              onPress={() => setShowCategoryModal(true)}
+            >
+              <Text style={styles.selectorText}>
+                {categories.find(c => c.value === formData.category)?.label}
+              </Text>
+              <Text style={styles.selectorArrow}>▼</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.halfField}>
             <Text style={styles.label}>タイプ</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={formData.type}
-                onValueChange={(value) => setFormData({ ...formData, type: value })}
-                style={styles.picker}
-              >
-                {types.map(type => (
-                  <Picker.Item key={type.value} label={type.label} value={type.value} />
-                ))}
-              </Picker>
-            </View>
+            <TouchableOpacity
+              style={styles.selectorButton}
+              onPress={() => setShowTypeModal(true)}
+            >
+              <Text style={styles.selectorText}>
+                {types.find(t => t.value === formData.type)?.label}
+              </Text>
+              <Text style={styles.selectorArrow}>▼</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.row}>
           <View style={styles.halfField}>
             <Text style={styles.label}>レベル</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={formData.level}
-                onValueChange={(value) => setFormData({ ...formData, level: value })}
-                style={styles.picker}
-              >
-                {levels.map(level => (
-                  <Picker.Item key={level.value} label={level.label} value={level.value} />
-                ))}
-              </Picker>
-            </View>
+            <TouchableOpacity
+              style={styles.selectorButton}
+              onPress={() => setShowLevelModal(true)}
+            >
+              <Text style={styles.selectorText}>
+                {levels.find(l => l.value === formData.level)?.label}
+              </Text>
+              <Text style={styles.selectorArrow}>▼</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.halfField}>
             <Text style={styles.label}>言語</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={formData.language}
-                onValueChange={(value) => setFormData({ ...formData, language: value })}
-                style={styles.picker}
-              >
-                <Picker.Item label="日本語" value="ja" />
-                <Picker.Item label="English" value="en" />
-                <Picker.Item label="한국어" value="ko" />
-              </Picker>
-            </View>
+            <TouchableOpacity
+              style={styles.selectorButton}
+              onPress={() => {
+                const languages = [
+                  { label: '日本語', value: 'ja' },
+                  { label: 'English', value: 'en' },
+                  { label: '한국어', value: 'ko' }
+                ];
+                const currentLang = languages.find(l => l.value === formData.language);
+                const nextIndex = (languages.findIndex(l => l.value === formData.language) + 1) % languages.length;
+                setFormData({ ...formData, language: languages[nextIndex].value });
+              }}
+            >
+              <Text style={styles.selectorText}>
+                {formData.language === 'ja' ? '日本語' : 
+                 formData.language === 'en' ? 'English' : '한국어'}
+              </Text>
+              <Text style={styles.selectorArrow}>🔄</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -313,6 +319,129 @@ const ResourceEditor: React.FC<ResourceEditorProps> = ({ resource, onSave, onCan
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Category Selection Modal */}
+      <Modal
+        visible={showCategoryModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowCategoryModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>カテゴリーを選択</Text>
+            <FlatList
+              data={categories}
+              keyExtractor={(item) => item.value}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.modalItem,
+                    formData.category === item.value && styles.modalItemSelected
+                  ]}
+                  onPress={() => {
+                    setFormData({ ...formData, category: item.value });
+                    setShowCategoryModal(false);
+                  }}
+                >
+                  <Text style={styles.modalItemText}>{item.label}</Text>
+                  {formData.category === item.value && (
+                    <Text style={styles.checkmark}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowCategoryModal(false)}
+            >
+              <Text style={styles.modalCloseText}>キャンセル</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Type Selection Modal */}
+      <Modal
+        visible={showTypeModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowTypeModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>タイプを選択</Text>
+            <FlatList
+              data={types}
+              keyExtractor={(item) => item.value}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.modalItem,
+                    formData.type === item.value && styles.modalItemSelected
+                  ]}
+                  onPress={() => {
+                    setFormData({ ...formData, type: item.value });
+                    setShowTypeModal(false);
+                  }}
+                >
+                  <Text style={styles.modalItemText}>{item.label}</Text>
+                  {formData.type === item.value && (
+                    <Text style={styles.checkmark}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowTypeModal(false)}
+            >
+              <Text style={styles.modalCloseText}>キャンセル</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Level Selection Modal */}
+      <Modal
+        visible={showLevelModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowLevelModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>レベルを選択</Text>
+            <FlatList
+              data={levels}
+              keyExtractor={(item) => item.value}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.modalItem,
+                    formData.level === item.value && styles.modalItemSelected
+                  ]}
+                  onPress={() => {
+                    setFormData({ ...formData, level: item.value });
+                    setShowLevelModal(false);
+                  }}
+                >
+                  <Text style={styles.modalItemText}>{item.label}</Text>
+                  {formData.level === item.value && (
+                    <Text style={styles.checkmark}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowLevelModal(false)}
+            >
+              <Text style={styles.modalCloseText}>キャンセル</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -412,6 +541,77 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  // Custom Selector Styles
+  selectorButton: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  selectorText: {
+    fontSize: 16,
+    color: '#374151',
+  },
+  selectorArrow: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '50%',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  modalItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  modalItemSelected: {
+    backgroundColor: '#eff6ff',
+  },
+  modalItemText: {
+    fontSize: 16,
+    color: '#374151',
+  },
+  checkmark: {
+    fontSize: 16,
+    color: '#3b82f6',
+    fontWeight: 'bold',
+  },
+  modalCloseButton: {
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalCloseText: {
+    fontSize: 16,
+    color: '#6b7280',
+    fontWeight: '500',
   },
 });
 

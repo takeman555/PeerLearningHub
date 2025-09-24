@@ -3,7 +3,9 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput } from 
 import { useRouter } from 'expo-router';
 import AuthGuard from '../components/AuthGuard';
 import resourceService from '../services/resourceService';
+import announcementService, { Announcement } from '../services/announcementService';
 import { Resource as CMSResource } from '../types/resources';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Resource {
   id: number;
@@ -23,69 +25,26 @@ interface Resource {
   lastUpdated: string;
 }
 
-interface Announcement {
-  id: number;
-  type: 'news' | 'update' | 'event' | 'maintenance';
-  title: string;
-  content: string;
-  date: string;
-  priority: 'high' | 'medium' | 'low';
-  isRead: boolean;
-}
+// Announcement interface is now imported from announcementService
 
 export default function Resources() {
   const router = useRouter();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'resources' | 'announcements' | 'help'>('resources');
   const [resourceFilter, setResourceFilter] = useState<'all' | 'tutorial' | 'documentation' | 'video' | 'book' | 'tool' | 'course'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [cmsResources, setCmsResources] = useState<CMSResource[]>([]);
   const [loadingCmsResources, setLoadingCmsResources] = useState(false);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loadingAnnouncements, setLoadingAnnouncements] = useState(false);
 
   // 統合されたリソースシステム - すべてCMSから取得
   const [allResources, setAllResources] = useState<CMSResource[]>([]);
 
-  const [announcements] = useState<Announcement[]>([
-    {
-      id: 1,
-      type: 'news',
-      title: '新機能リリース: AI学習アシスタント',
-      content: 'AI技術を活用した学習アシスタント機能をリリースしました。個人の学習進度に合わせたカスタマイズされた学習プランを提供します。',
-      date: '2024-01-14',
-      priority: 'high',
-      isRead: false
-    },
-    {
-      id: 2,
-      type: 'event',
-      title: 'グローバル学習イベント開催のお知らせ',
-      content: '2024年2月15日〜17日に開催される国際的な学習イベントの参加者を募集しています。世界中の学習者と交流する絶好の機会です。',
-      date: '2024-01-12',
-      priority: 'medium',
-      isRead: true
-    },
-    {
-      id: 3,
-      type: 'update',
-      title: 'アプリアップデート v2.1.0',
-      content: 'パフォーマンスの向上とバグ修正を含むアップデートをリリースしました。新しいダークモードテーマも追加されています。',
-      date: '2024-01-10',
-      priority: 'medium',
-      isRead: true
-    },
-    {
-      id: 4,
-      type: 'maintenance',
-      title: 'システムメンテナンスのお知らせ',
-      content: '2024年1月20日 2:00-4:00（JST）にシステムメンテナンスを実施します。この間、一部機能がご利用いただけません。',
-      date: '2024-01-08',
-      priority: 'high',
-      isRead: false
-    }
-  ]);
-
-  // Load all resources from CMS
+  // Load all resources from CMS and announcements from database
   useEffect(() => {
     loadAllResources();
+    loadAnnouncements();
   }, []);
 
   const loadAllResources = async () => {
@@ -99,6 +58,20 @@ export default function Resources() {
       console.error('Failed to load resources:', error);
     } finally {
       setLoadingCmsResources(false);
+    }
+  };
+
+  const loadAnnouncements = async () => {
+    setLoadingAnnouncements(true);
+    try {
+      const publishedAnnouncements = await announcementService.getPublishedAnnouncements(20);
+      setAnnouncements(publishedAnnouncements);
+    } catch (error) {
+      console.error('Failed to load announcements:', error);
+      // Fallback to empty array if loading fails
+      setAnnouncements([]);
+    } finally {
+      setLoadingAnnouncements(false);
     }
   };
 
@@ -408,43 +381,83 @@ export default function Resources() {
     </ScrollView>
   );
 
+  const formatAnnouncementDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const isAdmin = user?.user_metadata?.role === 'admin' || user?.user_metadata?.role === 'super_admin';
+
   const renderAnnouncements = () => (
     <ScrollView style={styles.tabContent}>
       <View style={styles.announcementsHeader}>
-        <Text style={styles.announcementsTitle}>📢 お知らせ・公式情報</Text>
-        <Text style={styles.announcementsSubtitle}>最新のニュースとアップデート情報</Text>
+        <View style={styles.announcementsHeaderContent}>
+          <View>
+            <Text style={styles.announcementsTitle}>📢 お知らせ・公式情報</Text>
+            <Text style={styles.announcementsSubtitle}>最新のニュースとアップデート情報</Text>
+          </View>
+          {isAdmin && (
+            <TouchableOpacity
+              style={styles.adminButton}
+              onPress={() => router.push('/admin/announcements')}
+            >
+              <Text style={styles.adminButtonText}>管理</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
       
-      {announcements.map((announcement) => (
-        <View key={announcement.id} style={[
-          styles.announcementCard,
-          !announcement.isRead && styles.unreadCard
-        ]}>
-          <View style={styles.announcementHeader}>
-            <View style={styles.announcementInfo}>
-              <Text style={styles.announcementIcon}>{getAnnouncementIcon(announcement.type)}</Text>
-              <View style={styles.announcementDetails}>
-                <Text style={styles.announcementTitle}>{announcement.title}</Text>
-                <Text style={styles.announcementDate}>{announcement.date}</Text>
-              </View>
-            </View>
-            <View style={styles.announcementMeta}>
-              <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(announcement.priority) + '20' }]}>
-                <Text style={[styles.priorityText, { color: getPriorityColor(announcement.priority) }]}>
-                  {getAnnouncementTypeText(announcement.type)}
-                </Text>
-              </View>
-              {!announcement.isRead && (
-                <View style={styles.unreadBadge}>
-                  <Text style={styles.unreadText}>NEW</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          
-          <Text style={styles.announcementContent}>{announcement.content}</Text>
+      {loadingAnnouncements ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>お知らせを読み込み中...</Text>
         </View>
-      ))}
+      ) : announcements.length > 0 ? (
+        announcements.map((announcement) => (
+          <View key={announcement.id} style={[
+            styles.announcementCard,
+            announcement.featured && styles.unreadCard
+          ]}>
+            <View style={styles.announcementHeader}>
+              <View style={styles.announcementInfo}>
+                <Text style={styles.announcementIcon}>{getAnnouncementIcon(announcement.type)}</Text>
+                <View style={styles.announcementDetails}>
+                  <Text style={styles.announcementTitle}>{announcement.title}</Text>
+                  <Text style={styles.announcementDate}>
+                    {announcement.published_at ? formatAnnouncementDate(announcement.published_at) : formatAnnouncementDate(announcement.created_at)}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.announcementMeta}>
+                <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(announcement.priority) + '20' }]}>
+                  <Text style={[styles.priorityText, { color: getPriorityColor(announcement.priority) }]}>
+                    {getAnnouncementTypeText(announcement.type)}
+                  </Text>
+                </View>
+                {announcement.featured && (
+                  <View style={styles.unreadBadge}>
+                    <Text style={styles.unreadText}>注目</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+            
+            <Text style={styles.announcementContent}>{announcement.content}</Text>
+            
+            {announcement.expires_at && new Date(announcement.expires_at) > new Date() && (
+              <Text style={styles.expiryText}>
+                有効期限: {formatAnnouncementDate(announcement.expires_at)}
+              </Text>
+            )}
+          </View>
+        ))
+      ) : (
+        <View style={styles.emptyAnnouncementsContainer}>
+          <Text style={styles.emptyAnnouncementsText}>現在、お知らせはありません</Text>
+        </View>
+      )}
     </ScrollView>
   );
 
@@ -787,6 +800,11 @@ const styles = StyleSheet.create({
   announcementsHeader: {
     marginBottom: 20,
   },
+  announcementsHeaderContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
   announcementsTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -796,6 +814,17 @@ const styles = StyleSheet.create({
   announcementsSubtitle: {
     fontSize: 14,
     color: '#6b7280',
+  },
+  adminButton: {
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  adminButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
   },
   announcementCard: {
     backgroundColor: 'white',
@@ -1070,5 +1099,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#d1d5db',
     textAlign: 'center',
+  },
+  // Loading and Empty States
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  emptyAnnouncementsContainer: {
+    alignItems: 'center',
+    paddingVertical: 48,
+  },
+  emptyAnnouncementsText: {
+    fontSize: 16,
+    color: '#9ca3af',
+    textAlign: 'center',
+  },
+  expiryText: {
+    fontSize: 12,
+    color: '#f59e0b',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
 });
