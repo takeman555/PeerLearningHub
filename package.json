@@ -16,7 +16,9 @@
     "setup:dev": "node scripts/disableEmailConfirmation.js",
     "reset:password": "node scripts/manualPasswordReset.js",
     "test:mock-auth": "node tests/mock-auth-integration.test.js",
-    "setup:supabase": "node scripts/testSupabaseConnection.js"
+    "setup:supabase": "node scripts/testSupabaseConnection.js",
+    "setup:database": "node scripts/setupDatabase.js",
+    "add:mock-users": "node scripts/addMockUsers.js"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",

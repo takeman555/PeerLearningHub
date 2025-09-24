@@ -63,66 +63,7 @@ export default function HomePage() {
       <View style={styles.content}>
         
         <View style={styles.buttonContainer}>
-          {user ? (
-            <Link href="/learning-dashboard" asChild>
-              <TouchableOpacity style={styles.actionButton}>
-                <Text style={styles.buttonIcon}>📊</Text>
-                <Text style={styles.actionButtonText}>ダッシュボード</Text>
-                <Text style={styles.buttonDescription}>ピアラーニングハブでの活動のナビゲーション</Text>
-              </TouchableOpacity>
-            </Link>
-          ) : (
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.lockedButton]}
-              onPress={() => router.push('/login')}
-            >
-              <Text style={styles.buttonIcon}>📊</Text>
-              <Text style={styles.actionButtonText}>ダッシュボード</Text>
-              <Text style={styles.buttonDescription}>ピアラーニングハブでの活動のナビゲーション</Text>
-              <Text style={styles.lockText}>🔒 ログインが必要です</Text>
-            </TouchableOpacity>
-          )}
-
-          {user ? (
-            <Link href="/projects" asChild>
-              <TouchableOpacity style={styles.actionButton}>
-                <Text style={styles.buttonIcon}>🚀</Text>
-                <Text style={styles.actionButtonText}>プロジェクト</Text>
-                <Text style={styles.buttonDescription}>期限付き企画。関連セミナー・イベントへの参加</Text>
-              </TouchableOpacity>
-            </Link>
-          ) : (
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.lockedButton]}
-              onPress={() => router.push('/login')}
-            >
-              <Text style={styles.buttonIcon}>🚀</Text>
-              <Text style={styles.actionButtonText}>プロジェクト</Text>
-              <Text style={styles.buttonDescription}>期限付き企画。関連セミナー・イベントへの参加</Text>
-              <Text style={styles.lockText}>🔒 ログインが必要です</Text>
-            </TouchableOpacity>
-          )}
-
-          {user ? (
-            <Link href="/peer-sessions" asChild>
-              <TouchableOpacity style={styles.actionButton}>
-                <Text style={styles.buttonIcon}>👥</Text>
-                <Text style={styles.actionButtonText}>ピア学習セッション</Text>
-                <Text style={styles.buttonDescription}>部活動や継続的なコミュニティへの参加</Text>
-              </TouchableOpacity>
-            </Link>
-          ) : (
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.lockedButton]}
-              onPress={() => router.push('/login')}
-            >
-              <Text style={styles.buttonIcon}>👥</Text>
-              <Text style={styles.actionButtonText}>ピア学習セッション</Text>
-              <Text style={styles.buttonDescription}>部活動や継続的なコミュニティへの参加</Text>
-              <Text style={styles.lockText}>🔒 ログインが必要です</Text>
-            </TouchableOpacity>
-          )}
-
+          {/* 第一フェーズから提供予定の機能 */}
           <Link href="/community" asChild>
             <TouchableOpacity style={styles.actionButton}>
               <Text style={styles.buttonIcon}>🌍</Text>
@@ -130,46 +71,6 @@ export default function HomePage() {
               <Text style={styles.buttonDescription}>世界中の学習者やデジタルノマドとつながる</Text>
             </TouchableOpacity>
           </Link>
-
-          {user ? (
-            <Link href="/accommodation" asChild>
-              <TouchableOpacity style={styles.actionButton}>
-                <Text style={styles.buttonIcon}>🏨</Text>
-                <Text style={styles.actionButtonText}>宿泊予約</Text>
-                <Text style={styles.buttonDescription}>ピアラーニングハブの公式施設の予約・履歴管理</Text>
-              </TouchableOpacity>
-            </Link>
-          ) : (
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.lockedButton]}
-              onPress={() => router.push('/login')}
-            >
-              <Text style={styles.buttonIcon}>🏨</Text>
-              <Text style={styles.actionButtonText}>宿泊予約</Text>
-              <Text style={styles.buttonDescription}>ピアラーニングハブの公式施設の予約・履歴管理</Text>
-              <Text style={styles.lockText}>🔒 ログインが必要です</Text>
-            </TouchableOpacity>
-          )}
-
-          {user ? (
-            <Link href="/activity" asChild>
-              <TouchableOpacity style={styles.actionButton}>
-                <Text style={styles.buttonIcon}>📅</Text>
-                <Text style={styles.actionButtonText}>活動履歴・予定管理</Text>
-                <Text style={styles.buttonDescription}>ピアラーニングハブでの活動の履歴確認と予約管理</Text>
-              </TouchableOpacity>
-            </Link>
-          ) : (
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.lockedButton]}
-              onPress={() => router.push('/login')}
-            >
-              <Text style={styles.buttonIcon}>📅</Text>
-              <Text style={styles.actionButtonText}>活動履歴・予定管理</Text>
-              <Text style={styles.buttonDescription}>ピアラーニングハブでの活動の履歴確認と予約管理</Text>
-              <Text style={styles.lockText}>🔒 ログインが必要です</Text>
-            </TouchableOpacity>
-          )}
 
           <Link href="/search" asChild>
             <TouchableOpacity style={[styles.actionButton, styles.searchButton]}>
@@ -186,6 +87,57 @@ export default function HomePage() {
               <Text style={styles.buttonDescription}>学習リソースなどの有用情報と公式情報へのアクセス</Text>
             </TouchableOpacity>
           </Link>
+
+          {/* 次期フェーズでの提供機能 */}
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.comingSoonButton]}
+            disabled={true}
+          >
+            <Text style={styles.buttonIcon}>📊</Text>
+            <Text style={styles.actionButtonText}>ダッシュボード</Text>
+            <Text style={styles.buttonDescription}>ピアラーニングハブでの活動のナビゲーション</Text>
+            <Text style={styles.comingSoonText}>🚧 次期フェーズで提供予定</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.comingSoonButton]}
+            disabled={true}
+          >
+            <Text style={styles.buttonIcon}>🚀</Text>
+            <Text style={styles.actionButtonText}>プロジェクト</Text>
+            <Text style={styles.buttonDescription}>期限付き企画。関連セミナー・イベントへの参加</Text>
+            <Text style={styles.comingSoonText}>🚧 次期フェーズで提供予定</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.comingSoonButton]}
+            disabled={true}
+          >
+            <Text style={styles.buttonIcon}>👥</Text>
+            <Text style={styles.actionButtonText}>ピア学習セッション</Text>
+            <Text style={styles.buttonDescription}>部活動や継続的なコミュニティへの参加</Text>
+            <Text style={styles.comingSoonText}>🚧 次期フェーズで提供予定</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.comingSoonButton]}
+            disabled={true}
+          >
+            <Text style={styles.buttonIcon}>🏨</Text>
+            <Text style={styles.actionButtonText}>宿泊予約</Text>
+            <Text style={styles.buttonDescription}>ピアラーニングハブの公式施設の予約・履歴管理</Text>
+            <Text style={styles.comingSoonText}>🚧 次期フェーズで提供予定</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.comingSoonButton]}
+            disabled={true}
+          >
+            <Text style={styles.buttonIcon}>📅</Text>
+            <Text style={styles.actionButtonText}>活動履歴・予定管理</Text>
+            <Text style={styles.buttonDescription}>ピアラーニングハブでの活動の履歴確認と予約管理</Text>
+            <Text style={styles.comingSoonText}>🚧 次期フェーズで提供予定</Text>
+          </TouchableOpacity>
 
           {user && hasAdminAccess(userRole) ? (
             <Link href="/admin" asChild>
@@ -380,6 +332,19 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     fontWeight: '600',
     marginTop: 4,
+  },
+  comingSoonButton: {
+    backgroundColor: '#fef3c7',
+    borderColor: '#f59e0b',
+    borderWidth: 2,
+    opacity: 0.8,
+  },
+  comingSoonText: {
+    fontSize: 12,
+    color: '#d97706',
+    fontWeight: '600',
+    marginTop: 4,
+    textAlign: 'center',
   },
   footer: {
     marginTop: 30,

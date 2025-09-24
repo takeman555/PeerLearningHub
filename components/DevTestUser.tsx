@@ -74,14 +74,20 @@ export default function DevTestUser() {
   const createAndLoginTestUser = async (user: typeof testUsers[0]) => {
     setLoading(true);
     try {
-      // Since we're using mock auth, users are pre-created, so just try to login
+      // Check if we're using mock auth
+      const USE_MOCK_AUTH = process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder') || 
+                           process.env.NODE_ENV === 'test' ||
+                           !process.env.EXPO_PUBLIC_SUPABASE_URL ||
+                           !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+      
       console.log('Logging in with test user:', user.email);
       const signInResult = await signIn(user.email, user.password);
       
       if (signInResult.error) {
         Alert.alert('エラー', `ログインに失敗しました: ${signInResult.error.message}`);
       } else {
-        Alert.alert('成功', `${user.email} でログインしました！（モック認証）`);
+        const authMode = USE_MOCK_AUTH ? '（モック認証）' : '（実際のデータベース）';
+        Alert.alert('成功', `${user.email} でログインしました！${authMode}`);
       }
     } catch (error) {
       console.error('Test user login error:', error);

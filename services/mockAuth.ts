@@ -130,7 +130,15 @@ const initializeTestUsers = () => {
     mockProfiles.set(userId, profile);
   });
 
-  console.log('✅ Mock test users initialized:', Array.from(mockUsers.keys()));
+  // Only log if mock auth is actually being used
+  const USE_MOCK_AUTH = process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder') || 
+                       process.env.NODE_ENV === 'test' ||
+                       !process.env.EXPO_PUBLIC_SUPABASE_URL ||
+                       !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+  
+  if (USE_MOCK_AUTH) {
+    console.log('✅ Mock test users initialized:', Array.from(mockUsers.keys()));
+  }
 };
 
 // Initialize test users immediately

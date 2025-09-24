@@ -2,14 +2,14 @@ import { supabase } from '../config/supabase';
 import { AuthError, User, Session } from '@supabase/supabase-js';
 import { mockAuthService } from './mockAuth';
 
-// Force mock authentication for development (temporarily)
-const USE_MOCK_AUTH = true; // Always use mock auth for now
+// Determine whether to use mock authentication based on environment
+const USE_MOCK_AUTH = process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder') || 
+                     process.env.NODE_ENV === 'test' ||
+                     !process.env.EXPO_PUBLIC_SUPABASE_URL ||
+                     !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-// Original logic (commented out):
-// const USE_MOCK_AUTH = process.env.EXPO_PUBLIC_SUPABASE_URL?.includes('placeholder') || 
-//                      process.env.NODE_ENV === 'test' ||
-//                      !process.env.EXPO_PUBLIC_SUPABASE_URL ||
-//                      !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+// Log authentication mode on service initialization
+console.log('🔧 Authentication Service:', USE_MOCK_AUTH ? 'Mock Mode (Development)' : 'Real Database Mode');
 
 export interface AuthResponse {
   user: User | null;
@@ -330,5 +330,5 @@ class AuthService {
   }
 }
 
-// Always use mock auth service for now
-export const authService = mockAuthService;
+// Export the appropriate auth service based on configuration
+export const authService = new AuthService();
