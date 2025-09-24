@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Linking, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import AuthGuard from '../components/AuthGuard';
 import resourceService from '../services/resourceService';
@@ -490,17 +490,72 @@ export default function Resources() {
         <View style={styles.contactSection}>
           <Text style={styles.contactSectionTitle}>お問い合わせ</Text>
           
-          <TouchableOpacity style={styles.contactButton}>
+          <TouchableOpacity 
+            style={styles.contactButton}
+            onPress={() => {
+              const email = 'tizuka0@gmail.com';
+              const subject = 'PeerLearningHub - サポートのお問い合わせ';
+              const body = 'お疲れ様です。\n\nPeerLearningHubについてお問い合わせがあります。\n\n【お問い合わせ内容】\n\n\n【ご利用環境】\n- デバイス: \n- OS: \n- アプリバージョン: \n\nよろしくお願いいたします。';
+              const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+              
+              Linking.canOpenURL(mailtoUrl)
+                .then((supported) => {
+                  if (supported) {
+                    return Linking.openURL(mailtoUrl);
+                  } else {
+                    Alert.alert(
+                      'メールアプリが見つかりません',
+                      `メールアプリがインストールされていないか、設定されていません。\n\n直接以下のメールアドレスにお問い合わせください：\n${email}`,
+                      [
+                        { text: 'キャンセル', style: 'cancel' },
+                        { 
+                          text: 'メールアドレスをコピー', 
+                          onPress: () => {
+                            // クリップボードにコピー機能は別途実装可能
+                            Alert.alert('メールアドレス', email);
+                          }
+                        }
+                      ]
+                    );
+                  }
+                })
+                .catch((err) => {
+                  console.error('メール送信エラー:', err);
+                  Alert.alert(
+                    'エラー',
+                    `メールアプリを開けませんでした。\n\n直接以下のメールアドレスにお問い合わせください：\n${email}`
+                  );
+                });
+            }}
+          >
             <Text style={styles.contactIcon}>📧</Text>
             <Text style={styles.contactText}>メールサポート</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.contactButton}>
+          <TouchableOpacity 
+            style={styles.contactButton}
+            onPress={() => {
+              Alert.alert(
+                'チャットサポート',
+                'チャットサポートは現在準備中です。\n\nお急ぎの場合は、メールサポートをご利用ください。',
+                [{ text: 'OK' }]
+              );
+            }}
+          >
             <Text style={styles.contactIcon}>💬</Text>
             <Text style={styles.contactText}>チャットサポート</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.contactButton}>
+          <TouchableOpacity 
+            style={styles.contactButton}
+            onPress={() => {
+              Alert.alert(
+                '電話サポート',
+                '電話サポートは現在準備中です。\n\nお問い合わせは、メールサポートをご利用ください。',
+                [{ text: 'OK' }]
+              );
+            }}
+          >
             <Text style={styles.contactIcon}>📞</Text>
             <Text style={styles.contactText}>電話サポート</Text>
           </TouchableOpacity>
