@@ -23,7 +23,15 @@
     "test:permissions-ts": "npx ts-node tests/permissionManager.test.ts",
     "test:permissions-integration": "npx ts-node tests/permissionManager.integration.test.ts",
     "test:cleanup": "npx ts-node tests/dataCleanupService.test.ts",
-    "test:cleanup-integration": "node tests/dataCleanupService.integration.test.js"
+    "test:cleanup-integration": "node tests/dataCleanupService.integration.test.js",
+    "test:initial-groups": "node tests/initialGroupsBatch.test.js",
+    "test:group-display": "node tests/groupDisplay.test.js",
+    "create:initial-groups": "node scripts/manageInitialGroups.js create",
+    "check:initial-groups": "node scripts/manageInitialGroups.js check",
+    "validate:initial-groups": "node scripts/manageInitialGroups.js validate",
+    "setup:database": "node scripts/setupCompleteDatabase.js",
+    "reload:schema": "node scripts/reloadSchemaCache.js",
+    "verify:database": "node scripts/verifyDatabaseSetup.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",

@@ -7,6 +7,7 @@
     "icon": "./assets/PLH_logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "scheme": "peerlearninghub",
     "splash": {
       "image": "./assets/PLH_logo.png",
       "resizeMode": "contain",

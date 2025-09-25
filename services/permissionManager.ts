@@ -29,16 +29,10 @@ class PermissionManagerService {
    */
   async getUserRole(userId: string): Promise<UserRole> {
     try {
-      // Get user profile and roles from database
+      // Get user profile first
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          email,
-          full_name,
-          is_active,
-          user_roles!inner(role, is_active)
-        `)
+        .select('id, email, full_name, is_active')
         .eq('id', userId)
         .eq('is_active', true)
         .single();
@@ -48,10 +42,20 @@ class PermissionManagerService {
         return 'guest';
       }
 
+      // Get user roles separately to avoid JOIN issues
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('role, is_active')
+        .eq('user_id', userId)
+        .eq('is_active', true);
+
+      if (rolesError || !userRoles) {
+        console.warn('User roles not found:', userId);
+        return 'guest';
+      }
+
       // Extract active roles
-      const activeRoles = profile.user_roles
-        .filter((ur: any) => ur.is_active)
-        .map((ur: any) => ur.role);
+      const activeRoles = userRoles.map((ur: any) => ur.role);
 
       // Determine highest privilege role
       if (activeRoles.includes('admin') || activeRoles.includes('super_admin')) {

@@ -1,178 +1,297 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import AuthGuard from '../components/AuthGuard';
+import GroupCard from '../components/GroupCard';
 import { useAuth } from '../contexts/AuthContext';
+import { communityFeedService, Post } from '../services/communityFeedService';
+import { membersService, Member } from '../services/membersService';
+import { groupsService, Group } from '../services/groupsService';
+import { permissionManager } from '../services/permissionManager';
 
-interface CommunityPost {
-  id: number;
-  author: string;
-  avatar: string;
-  country: string;
-  timestamp: string;
-  content: string;
-  likes: number;
-  comments: number;
-  tags: string[];
-  isLiked?: boolean;
-}
-
-interface CommunityMember {
-  id: number;
-  name: string;
-  country: string;
-  avatar: string;
-  skills: string[];
-  isOnline: boolean;
-  mutualConnections: number;
-}
+// Remove old interfaces as we're using the service interfaces now
 
 export default function Community() {
   const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'feed' | 'members' | 'groups'>('feed');
   const [newPost, setNewPost] = useState('');
+  
+  // State for posts
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [postSubmitting, setPostSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  
+  // State for members
+  const [members, setMembers] = useState<Member[]>([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  
+  // State for groups
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [groupsLoading, setGroupsLoading] = useState(false);
+  
+  // Permission states
+  const [canCreatePost, setCanCreatePost] = useState(false);
+  const [canViewMembers, setCanViewMembers] = useState(false);
+  const [permissionsLoading, setPermissionsLoading] = useState(true);
 
-  const [posts] = useState<CommunityPost[]>([
-    {
-      id: 1,
-      author: 'Maria Santos',
-      avatar: '🇧🇷',
-      country: 'ブラジル',
-      timestamp: '2時間前',
-      content: 'React Nativeプロジェクトでアニメーションを実装中です。Reanimated 3の新機能を試していますが、とても滑らかで感動しています！皆さんはどんなアニメーションライブラリを使っていますか？',
-      likes: 24,
-      comments: 8,
-      tags: ['React Native', 'Animation', 'Reanimated'],
-      isLiked: false
-    },
-    {
-      id: 2,
-      author: 'Ahmed Hassan',
-      avatar: '🇪🇬',
-      country: 'エジプト',
-      timestamp: '4時間前',
-      content: 'TypeScriptの型システムについて深く学んでいます。Conditional Typesの概念が最初は難しかったですが、実際に使ってみると非常に強力ですね。型安全性が格段に向上しました。',
-      likes: 31,
-      comments: 12,
-      tags: ['TypeScript', 'Types', 'Programming'],
-      isLiked: true
-    },
-    {
-      id: 3,
-      author: 'Sophie Chen',
-      avatar: '🇫🇷',
-      country: 'フランス',
-      timestamp: '6時間前',
-      content: '今日のピア学習セッションでWeb3開発について学びました。スマートコントラクトの概念が理解できて、ブロックチェーン技術の可能性を感じています。次はDAppを作ってみたいです！',
-      likes: 18,
-      comments: 5,
-      tags: ['Web3', 'Blockchain', 'Smart Contracts'],
-      isLiked: false
-    },
-    {
-      id: 4,
-      author: 'Raj Patel',
-      avatar: '🇮🇳',
-      country: 'インド',
-      timestamp: '8時間前',
-      content: 'AI/MLプロジェクトでPythonのscikit-learnを使って機械学習モデルを構築しています。データの前処理が思った以上に重要だということを実感しました。良いデータセットの見つけ方について教えてください！',
-      likes: 27,
-      comments: 15,
-      tags: ['Python', 'Machine Learning', 'Data Science'],
-      isLiked: true
+  // Load data and permissions on component mount and user change
+  useEffect(() => {
+    loadPermissions();
+    if (activeTab === 'feed') {
+      loadPosts();
+    } else if (activeTab === 'members') {
+      loadMembers();
+    } else if (activeTab === 'groups') {
+      loadGroups();
     }
-  ]);
+  }, [user, activeTab]);
 
-  const [members] = useState<CommunityMember[]>([
-    {
-      id: 1,
-      name: 'Elena Rodriguez',
-      country: 'スペイン',
-      avatar: '🇪🇸',
-      skills: ['React', 'Node.js', 'GraphQL'],
-      isOnline: true,
-      mutualConnections: 5
-    },
-    {
-      id: 2,
-      name: 'Yuki Tanaka',
-      country: '日本',
-      avatar: '🇯🇵',
-      skills: ['Flutter', 'Dart', 'Firebase'],
-      isOnline: true,
-      mutualConnections: 3
-    },
-    {
-      id: 3,
-      name: 'David Kim',
-      country: '韓国',
-      avatar: '🇰🇷',
-      skills: ['Vue.js', 'Python', 'Django'],
-      isOnline: false,
-      mutualConnections: 8
-    },
-    {
-      id: 4,
-      name: 'Lisa Johnson',
-      country: 'アメリカ',
-      avatar: '🇺🇸',
-      skills: ['iOS', 'Swift', 'SwiftUI'],
-      isOnline: true,
-      mutualConnections: 2
-    },
-    {
-      id: 5,
-      name: 'Marco Rossi',
-      avatar: '🇮🇹',
-      country: 'イタリア',
-      skills: ['Angular', 'TypeScript', 'NestJS'],
-      isOnline: false,
-      mutualConnections: 6
+  const loadPermissions = async () => {
+    if (!user?.id) {
+      setCanCreatePost(false);
+      setCanViewMembers(false);
+      setPermissionsLoading(false);
+      return;
     }
-  ]);
 
-  const handleLikePost = (postId: number) => {
-    console.log(`Liked post ${postId}`);
+    try {
+      setPermissionsLoading(true);
+      const [postPermission, memberPermission] = await Promise.all([
+        permissionManager.canCreatePost(user.id),
+        permissionManager.canViewMembers(user.id)
+      ]);
+      
+      setCanCreatePost(postPermission.allowed);
+      setCanViewMembers(memberPermission.allowed);
+    } catch (error) {
+      console.error('Error loading permissions:', error);
+      setCanCreatePost(false);
+      setCanViewMembers(false);
+    } finally {
+      setPermissionsLoading(false);
+    }
   };
 
-  const handleCommentPost = (postId: number) => {
-    console.log(`Comment on post ${postId}`);
+  const loadPosts = async (isRefresh = false) => {
+    try {
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setPostsLoading(true);
+      }
+      
+      const response = await communityFeedService.getPosts(user?.id);
+      setPosts(response.posts);
+    } catch (error) {
+      console.error('Error loading posts:', error);
+      Alert.alert('エラー', '投稿の読み込みに失敗しました');
+    } finally {
+      if (isRefresh) {
+        setRefreshing(false);
+      } else {
+        setPostsLoading(false);
+      }
+    }
   };
 
-  const handleConnectMember = (memberId: number) => {
-    console.log(`Connect with member ${memberId}`);
+  const handleRefresh = () => {
+    if (activeTab === 'feed') {
+      loadPosts(true);
+    } else if (activeTab === 'members') {
+      loadMembers();
+    } else if (activeTab === 'groups') {
+      loadGroups();
+    }
   };
 
-  const handlePostSubmit = () => {
-    if (newPost.trim()) {
-      console.log('New post:', newPost);
+  const loadMembers = async () => {
+    if (!canViewMembers && !user?.id) {
+      return;
+    }
+
+    try {
+      setMembersLoading(true);
+      const response = await membersService.getActiveMembers(user?.id);
+      setMembers(response.members);
+    } catch (error) {
+      console.error('Error loading members:', error);
+      Alert.alert('エラー', 'メンバーの読み込みに失敗しました');
+    } finally {
+      setMembersLoading(false);
+    }
+  };
+
+  const loadGroups = async () => {
+    try {
+      setGroupsLoading(true);
+      const response = await groupsService.getAllGroups();
+      setGroups(response.groups);
+    } catch (error) {
+      console.error('Error loading groups:', error);
+      // Don't show alert for groups loading error as it might be expected
+      // if the database is not set up yet
+      console.warn('Groups loading failed, this might be expected if database is not set up');
+    } finally {
+      setGroupsLoading(false);
+    }
+  };
+
+  const handleLikePost = async (postId: string) => {
+    if (!user?.id) {
+      Alert.alert('ログインが必要です', 'いいねをするにはログインしてください');
+      return;
+    }
+
+    try {
+      const result = await communityFeedService.togglePostLike(user.id, postId);
+      
+      // Update local state
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === postId 
+            ? { ...post, isLikedByUser: result.isLiked, likesCount: result.likesCount }
+            : post
+        )
+      );
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      const errorMessage = error instanceof Error ? error.message : 'いいねの処理に失敗しました';
+      
+      if (errorMessage.includes('temporarily unavailable')) {
+        // Show a less intrusive message for temporary unavailability
+        console.warn('Like functionality temporarily unavailable');
+        // Don't show alert for this case, just log it
+      } else if (errorMessage.includes('Please sign in')) {
+        Alert.alert('ログインが必要です', 'いいねをするにはログインしてください');
+      } else {
+        Alert.alert('エラー', 'いいね機能で問題が発生しました。後でもう一度お試しください。');
+      }
+    }
+  };
+
+  const handleCommentPost = (postId: string) => {
+    // TODO: Implement comment functionality
+    Alert.alert('開発中', 'コメント機能は開発中です');
+  };
+
+  const handleConnectMember = (memberId: string) => {
+    // TODO: Implement connection functionality
+    Alert.alert('開発中', 'つながり機能は開発中です');
+  };
+
+  const handleJoinGroup = (groupId: string) => {
+    // This is for internal group joining (not external links)
+    // TODO: Implement internal group membership functionality
+    Alert.alert('開発中', 'グループメンバーシップ機能は開発中です');
+  };
+
+  const handlePostSubmit = async () => {
+    if (!newPost.trim()) return;
+    
+    if (!user?.id) {
+      Alert.alert('ログインが必要です', '投稿するにはログインしてください');
+      return;
+    }
+
+    try {
+      setPostSubmitting(true);
+      
+      // Extract tags from content (simple implementation)
+      const tags = newPost.match(/#\w+/g)?.map(tag => tag.slice(1)) || [];
+      
+      const post = await communityFeedService.createPost(user.id, {
+        content: newPost.trim(),
+        tags
+      });
+      
+      // Add new post to the beginning of the list
+      setPosts(prevPosts => [post, ...prevPosts]);
       setNewPost('');
+      
+      Alert.alert('成功', '投稿が作成されました！');
+    } catch (error: any) {
+      console.error('Error creating post:', error);
+      Alert.alert('エラー', error.message || '投稿の作成に失敗しました');
+    } finally {
+      setPostSubmitting(false);
     }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (!user?.id) return;
+
+    Alert.alert(
+      '投稿を削除',
+      'この投稿を削除しますか？',
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        {
+          text: '削除',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await communityFeedService.deletePost(user.id, postId);
+              setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+              Alert.alert('成功', '投稿が削除されました');
+            } catch (error: any) {
+              console.error('Error deleting post:', error);
+              Alert.alert('エラー', error.message || '投稿の削除に失敗しました');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const renderFeed = () => (
-    <ScrollView style={styles.tabContent}>
-      {/* New Post - Only for authenticated users */}
-      {user ? (
+    <ScrollView 
+      style={styles.tabContent}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          colors={['#3b82f6']}
+          tintColor="#3b82f6"
+        />
+      }
+    >
+      {/* New Post - Only for members with permission */}
+      {user && canCreatePost ? (
         <View style={styles.newPostContainer}>
           <Text style={styles.newPostTitle}>💭 何を共有しますか？</Text>
           <TextInput
             style={styles.newPostInput}
-            placeholder="学習の進捗、質問、発見を共有しましょう..."
+            placeholder="学習の進捗、質問、発見を共有しましょう... (#タグ を使ってカテゴリ分けできます)"
             multiline
             value={newPost}
             onChangeText={setNewPost}
+            editable={!postSubmitting}
           />
           <TouchableOpacity 
-            style={[styles.postButton, !newPost.trim() && styles.postButtonDisabled]}
+            style={[
+              styles.postButton, 
+              (!newPost.trim() || postSubmitting) && styles.postButtonDisabled
+            ]}
             onPress={handlePostSubmit}
-            disabled={!newPost.trim()}
+            disabled={!newPost.trim() || postSubmitting}
           >
-            <Text style={styles.postButtonText}>投稿する</Text>
+            {postSubmitting ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text style={styles.postButtonText}>投稿する</Text>
+            )}
           </TouchableOpacity>
         </View>
-      ) : (
+      ) : user && !canCreatePost && !permissionsLoading ? (
+        <View style={styles.visitorNoticeContainer}>
+          <Text style={styles.visitorNoticeTitle}>📝 投稿権限について</Text>
+          <Text style={styles.visitorNoticeText}>
+            投稿機能はメンバーのみご利用いただけます。メンバーシップの詳細については管理者にお問い合わせください。
+          </Text>
+        </View>
+      ) : !user ? (
         <View style={styles.visitorNoticeContainer}>
           <Text style={styles.visitorNoticeTitle}>👋 コミュニティへようこそ</Text>
           <Text style={styles.visitorNoticeText}>
@@ -185,157 +304,282 @@ export default function Community() {
             <Text style={styles.loginPromptButtonText}>ログイン・登録</Text>
           </TouchableOpacity>
         </View>
-      )}
+      ) : null}
 
-      {/* Posts */}
-      {posts.map((post) => (
-        <View key={post.id} style={styles.postCard}>
-          <View style={styles.postHeader}>
-            <View style={styles.authorInfo}>
-              <Text style={styles.avatar}>{post.avatar}</Text>
-              <View style={styles.authorDetails}>
-                <Text style={styles.authorName}>{post.author}</Text>
-                <Text style={styles.authorCountry}>{post.country} • {post.timestamp}</Text>
-              </View>
-            </View>
-          </View>
-          
-          <Text style={styles.postContent}>{post.content}</Text>
-          
-          {/* Tags */}
-          <View style={styles.tagsContainer}>
-            {post.tags.map((tag, index) => (
-              <View key={index} style={styles.tag}>
-                <Text style={styles.tagText}>#{tag}</Text>
-              </View>
-            ))}
-          </View>
-          
-          {/* Actions */}
-          <View style={styles.postActions}>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={() => handleLikePost(post.id)}
-            >
-              <Text style={[styles.actionIcon, post.isLiked && styles.likedIcon]}>
-                {post.isLiked ? '❤️' : '🤍'}
-              </Text>
-              <Text style={styles.actionText}>{post.likes}</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={() => handleCommentPost(post.id)}
-            >
-              <Text style={styles.actionIcon}>💬</Text>
-              <Text style={styles.actionText}>{post.comments}</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.actionButton}>
-              <Text style={styles.actionIcon}>🔗</Text>
-              <Text style={styles.actionText}>共有</Text>
-            </TouchableOpacity>
-          </View>
+      {/* Loading indicator */}
+      {postsLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#3b82f6" />
+          <Text style={styles.loadingText}>投稿を読み込み中...</Text>
         </View>
-      ))}
-    </ScrollView>
-  );
-
-  const renderMembers = () => (
-    <ScrollView style={styles.tabContent}>
-      <View style={styles.membersHeader}>
-        <Text style={styles.membersTitle}>🌍 グローバルメンバー</Text>
-        <Text style={styles.membersSubtitle}>世界中の学習者とつながりましょう</Text>
-      </View>
-      
-      {members.map((member) => (
-        <View key={member.id} style={styles.memberCard}>
-          <View style={styles.memberHeader}>
-            <View style={styles.memberInfo}>
-              <View style={styles.avatarContainer}>
-                <Text style={styles.memberAvatar}>{member.avatar}</Text>
-                {member.isOnline && <View style={styles.onlineIndicator} />}
-              </View>
-              <View style={styles.memberDetails}>
-                <Text style={styles.memberName}>{member.name}</Text>
-                <Text style={styles.memberCountry}>{member.country}</Text>
-                <Text style={styles.mutualConnections}>
-                  {member.mutualConnections}人の共通の知り合い
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity 
-              style={styles.connectButton}
-              onPress={() => handleConnectMember(member.id)}
-            >
-              <Text style={styles.connectButtonText}>つながる</Text>
-            </TouchableOpacity>
-          </View>
-          
-          {/* Skills */}
-          <View style={styles.skillsContainer}>
-            <Text style={styles.skillsLabel}>スキル:</Text>
-            <View style={styles.skillsList}>
-              {member.skills.map((skill, index) => (
-                <View key={index} style={styles.skillTag}>
-                  <Text style={styles.skillText}>{skill}</Text>
+      ) : (
+        <>
+          {/* Posts */}
+          {posts.length > 0 ? (
+            posts.map((post) => (
+              <View key={post.id} style={styles.postCard}>
+                <View style={styles.postHeader}>
+                  <View style={styles.authorInfo}>
+                    <Text style={styles.avatar}>{post.authorAvatar || '👤'}</Text>
+                    <View style={styles.authorDetails}>
+                      <Text style={styles.authorName}>{post.authorName}</Text>
+                      <Text style={styles.authorCountry}>
+                        {formatTimestamp(post.createdAt)}
+                        {post.updatedAt.getTime() !== post.createdAt.getTime() && ' (編集済み)'}
+                      </Text>
+                    </View>
+                  </View>
+                  {/* Delete button for own posts */}
+                  {user && (user.id === post.userId) && (
+                    <TouchableOpacity 
+                      style={styles.deleteButton}
+                      onPress={() => handleDeletePost(post.id)}
+                    >
+                      <Text style={styles.deleteButtonText}>🗑️</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
-              ))}
+                
+                <Text style={styles.postContent}>{formatPostContent(post.content)}</Text>
+                
+                {/* Tags */}
+                {post.tags.length > 0 && (
+                  <View style={styles.tagsContainer}>
+                    {post.tags.map((tag, index) => (
+                      <View key={index} style={styles.tag}>
+                        <Text style={styles.tagText}>#{tag}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+                
+                {/* Actions */}
+                <View style={styles.postActions}>
+                  <TouchableOpacity 
+                    style={styles.actionButton}
+                    onPress={() => handleLikePost(post.id)}
+                  >
+                    <Text style={[styles.actionIcon, post.isLikedByUser && styles.likedIcon]}>
+                      {post.isLikedByUser ? '❤️' : '🤍'}
+                    </Text>
+                    <Text style={styles.actionText}>{post.likesCount}</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={styles.actionButton}
+                    onPress={() => handleCommentPost(post.id)}
+                  >
+                    <Text style={styles.actionIcon}>💬</Text>
+                    <Text style={styles.actionText}>{post.commentsCount}</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity style={styles.actionButton}>
+                    <Text style={styles.actionIcon}>🔗</Text>
+                    <Text style={styles.actionText}>共有</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          ) : (
+            <View style={styles.emptyStateContainer}>
+              <Text style={styles.emptyStateTitle}>📝 まだ投稿がありません</Text>
+              <Text style={styles.emptyStateText}>
+                最初の投稿を作成して、コミュニティを盛り上げましょう！
+              </Text>
             </View>
-          </View>
-        </View>
-      ))}
+          )}
+        </>
+      )}
     </ScrollView>
   );
+
+  const formatTimestamp = (date: Date): string => {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 1) return 'たった今';
+    if (diffMins < 60) return `${diffMins}分前`;
+    if (diffHours < 24) return `${diffHours}時間前`;
+    if (diffDays < 7) return `${diffDays}日前`;
+    
+    return date.toLocaleDateString('ja-JP', {
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const renderMembers = () => {
+    if (!user) {
+      return (
+        <ScrollView style={styles.tabContent}>
+          <View style={styles.visitorNoticeContainer}>
+            <Text style={styles.visitorNoticeTitle}>👋 メンバーリストを見るには</Text>
+            <Text style={styles.visitorNoticeText}>
+              メンバーリストを表示するにはログインが必要です。
+            </Text>
+            <TouchableOpacity 
+              style={styles.loginPromptButton}
+              onPress={() => router.push('/login')}
+            >
+              <Text style={styles.loginPromptButtonText}>ログイン・登録</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      );
+    }
+
+    if (!canViewMembers && !permissionsLoading) {
+      return (
+        <ScrollView style={styles.tabContent}>
+          <View style={styles.visitorNoticeContainer}>
+            <Text style={styles.visitorNoticeTitle}>🔒 メンバーリストへのアクセス</Text>
+            <Text style={styles.visitorNoticeText}>
+              メンバーリストの表示にはメンバー権限が必要です。管理者にお問い合わせください。
+            </Text>
+          </View>
+        </ScrollView>
+      );
+    }
+
+    return (
+      <ScrollView 
+        style={styles.tabContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={['#3b82f6']}
+            tintColor="#3b82f6"
+          />
+        }
+      >
+        <View style={styles.membersHeader}>
+          <Text style={styles.membersTitle}>🌍 コミュニティメンバー</Text>
+          <Text style={styles.membersSubtitle}>実際に登録されているメンバーとつながりましょう</Text>
+        </View>
+        
+        {membersLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#3b82f6" />
+            <Text style={styles.loadingText}>メンバーを読み込み中...</Text>
+          </View>
+        ) : members.length > 0 ? (
+          members.map((member) => (
+            <View key={member.id} style={styles.memberCard}>
+              <View style={styles.memberHeader}>
+                <View style={styles.memberInfo}>
+                  <View style={styles.avatarContainer}>
+                    <Text style={styles.memberAvatar}>
+                      {member.avatarUrl ? '👤' : '👨‍💻'}
+                    </Text>
+                    {member.isOnline && <View style={styles.onlineIndicator} />}
+                  </View>
+                  <View style={styles.memberDetails}>
+                    <Text style={styles.memberName}>{member.displayName}</Text>
+                    <Text style={styles.memberCountry}>
+                      {formatMemberJoinDate(member.joinedAt)}
+                    </Text>
+                    <Text style={styles.mutualConnections}>
+                      役割: {member.roles.join(', ') || 'メンバー'}
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity 
+                  style={styles.connectButton}
+                  onPress={() => handleConnectMember(member.id)}
+                >
+                  <Text style={styles.connectButtonText}>つながる</Text>
+                </TouchableOpacity>
+              </View>
+              
+              {/* Skills - Show placeholder for now */}
+              {member.skills && member.skills.length > 0 && (
+                <View style={styles.skillsContainer}>
+                  <Text style={styles.skillsLabel}>スキル:</Text>
+                  <View style={styles.skillsList}>
+                    {member.skills.map((skill, index) => (
+                      <View key={index} style={styles.skillTag}>
+                        <Text style={styles.skillText}>{skill}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+            </View>
+          ))
+        ) : (
+          <View style={styles.emptyStateContainer}>
+            <Text style={styles.emptyStateTitle}>👥 メンバーが見つかりません</Text>
+            <Text style={styles.emptyStateText}>
+              まだ登録されているメンバーがいないか、読み込みに問題があります。
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+    );
+  };
+
+  const formatMemberJoinDate = (date: Date): string => {
+    return `${date.toLocaleDateString('ja-JP')} に参加`;
+  };
+
+  const formatPostContent = (content: string): string => {
+    // Simple content formatting - in a real app you might want more sophisticated formatting
+    return content
+      .replace(/\n\n+/g, '\n\n') // Normalize multiple line breaks
+      .trim();
+  };
 
   const renderGroups = () => (
-    <ScrollView style={styles.tabContent}>
+    <ScrollView 
+      style={styles.tabContent}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          colors={['#3b82f6']}
+          tintColor="#3b82f6"
+        />
+      }
+    >
       <View style={styles.groupsHeader}>
-        <Text style={styles.groupsTitle}>👥 学習グループ</Text>
-        <Text style={styles.groupsSubtitle}>興味のあるトピックでグループに参加</Text>
+        <Text style={styles.groupsTitle}>👥 コミュニティグループ</Text>
+        <Text style={styles.groupsSubtitle}>
+          興味のあるトピックでグループに参加して、メンバーと交流しましょう
+        </Text>
       </View>
       
-      <View style={styles.groupCard}>
-        <Text style={styles.groupName}>React Native 開発者</Text>
-        <Text style={styles.groupDescription}>
-          React Nativeでのモバイルアプリ開発について議論し、知識を共有するグループです。
-        </Text>
-        <View style={styles.groupStats}>
-          <Text style={styles.groupStat}>👥 1,234名</Text>
-          <Text style={styles.groupStat}>📝 週5-10投稿</Text>
+      {groupsLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#3b82f6" />
+          <Text style={styles.loadingText}>グループを読み込み中...</Text>
         </View>
-        <TouchableOpacity style={styles.joinGroupButton}>
-          <Text style={styles.joinGroupButtonText}>グループに参加</Text>
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.groupCard}>
-        <Text style={styles.groupName}>AI・機械学習</Text>
-        <Text style={styles.groupDescription}>
-          人工知能と機械学習の最新技術について学び、プロジェクトを共有するコミュニティです。
-        </Text>
-        <View style={styles.groupStats}>
-          <Text style={styles.groupStat}>👥 856名</Text>
-          <Text style={styles.groupStat}>📝 週3-7投稿</Text>
+      ) : groups.length > 0 ? (
+        groups.map((group) => (
+          <GroupCard
+            key={group.id}
+            group={group}
+            onJoinGroup={handleJoinGroup}
+          />
+        ))
+      ) : (
+        <View style={styles.emptyStateContainer}>
+          <Text style={styles.emptyStateTitle}>👥 グループが見つかりません</Text>
+          <Text style={styles.emptyStateText}>
+            まだグループが作成されていないか、読み込みに問題があります。
+            {'\n'}管理者がグループを設定するまでお待ちください。
+          </Text>
+          <TouchableOpacity 
+            style={styles.refreshButton}
+            onPress={() => loadGroups()}
+          >
+            <Text style={styles.refreshButtonText}>再読み込み</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.joinGroupButton}>
-          <Text style={styles.joinGroupButtonText}>グループに参加</Text>
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.groupCard}>
-        <Text style={styles.groupName}>Web3・ブロックチェーン</Text>
-        <Text style={styles.groupDescription}>
-          分散型アプリケーション開発とブロックチェーン技術について学習するグループです。
-        </Text>
-        <View style={styles.groupStats}>
-          <Text style={styles.groupStat}>👥 642名</Text>
-          <Text style={styles.groupStat}>📝 週2-5投稿</Text>
-        </View>
-        <TouchableOpacity style={styles.joinGroupButton}>
-          <Text style={styles.joinGroupButtonText}>グループに参加</Text>
-        </TouchableOpacity>
-      </View>
+      )}
     </ScrollView>
   );
 
@@ -728,6 +972,60 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   joinGroupButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  // Loading and empty state styles
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    marginTop: 20,
+  },
+  emptyStateTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  // Delete button styles
+  deleteButton: {
+    padding: 8,
+  },
+  deleteButtonText: {
+    fontSize: 16,
+  },
+  // Refresh button styles
+  refreshButton: {
+    backgroundColor: '#3b82f6',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignSelf: 'center',
+    marginTop: 16,
+  },
+  refreshButtonText: {
     color: 'white',
     fontSize: 14,
     fontWeight: '600',
