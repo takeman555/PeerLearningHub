@@ -7,6 +7,7 @@ import { hasAdminAccess } from '../utils/permissions';
 import ResourceEditor from '../components/ResourceEditor';
 import resourceService from '../services/resourceService';
 import { Resource } from '../types/resources';
+import AdminDashboard from '../components/AdminDashboard';
 
 interface User {
   id: number;
@@ -44,7 +45,7 @@ interface Report {
 export default function Admin() {
   const router = useRouter();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'content' | 'reports' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'content' | 'reports' | 'settings' | 'community'>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [showResourceEditor, setShowResourceEditor] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | undefined>();
@@ -698,6 +699,7 @@ export default function Admin() {
           <View style={styles.tabButtons}>
             {[
               { key: 'dashboard', label: 'ダッシュボード' },
+              { key: 'community', label: 'コミュニティ管理' },
               { key: 'users', label: 'ユーザー' },
               { key: 'content', label: 'コンテンツ' },
               { key: 'reports', label: '報告' },
@@ -725,6 +727,7 @@ export default function Admin() {
 
       {/* Tab Content */}
       {activeTab === 'dashboard' && renderDashboard()}
+      {activeTab === 'community' && <AdminDashboard />}
       {activeTab === 'users' && renderUsers()}
       {activeTab === 'content' && renderContentManagement()}
       {activeTab === 'reports' && renderReports()}

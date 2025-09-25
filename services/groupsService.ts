@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase';
 import { permissionManager } from './permissionManager';
+import { externalLinkService } from './externalLinkService';
 
 // Group interfaces
 export interface Group {
@@ -61,10 +62,17 @@ class GroupsService {
 
       // Validate external link if provided
       if (groupData.externalLink) {
-        const linkValidation = this.validateExternalLink(groupData.externalLink);
+        const linkValidation = externalLinkService.validateUrl(groupData.externalLink);
         if (!linkValidation.isValid) {
-          throw new Error(linkValidation.error || 'Invalid external link');
+          const userMessage = externalLinkService.getErrorMessage(
+            { message: linkValidation.error }, 
+            groupData.externalLink, 
+            'group_creation'
+          );
+          throw new Error(userMessage);
         }
+        // Use sanitized URL
+        groupData.externalLink = linkValidation.sanitizedUrl!;
       }
 
       // Insert group into database
@@ -277,10 +285,17 @@ class GroupsService {
 
       // Validate external link if provided
       if (updates.externalLink !== undefined && updates.externalLink) {
-        const linkValidation = this.validateExternalLink(updates.externalLink);
+        const linkValidation = externalLinkService.validateUrl(updates.externalLink);
         if (!linkValidation.isValid) {
-          throw new Error(linkValidation.error || 'Invalid external link');
+          const userMessage = externalLinkService.getErrorMessage(
+            { message: linkValidation.error }, 
+            updates.externalLink, 
+            'group_creation'
+          );
+          throw new Error(userMessage);
         }
+        // Use sanitized URL
+        updates.externalLink = linkValidation.sanitizedUrl!;
       }
 
       // Prepare update data
@@ -435,70 +450,7 @@ class GroupsService {
     return null;
   }
 
-  /**
-   * Validate external link format and accessibility
-   * Requirements: 4.4 - External link validation
-   */
-  private validateExternalLink(url: string): { isValid: boolean; error?: string } {
-    try {
-      // Basic URL format validation
-      const urlPattern = /^https?:\/\/[^\s/$.?#].[^\s]*$/i;
-      if (!urlPattern.test(url)) {
-        return {
-          isValid: false,
-          error: 'External link must be a valid HTTP or HTTPS URL'
-        };
-      }
 
-      // Check URL length
-      if (url.length > 2000) {
-        return {
-          isValid: false,
-          error: 'External link URL is too long'
-        };
-      }
-
-      // Additional validation for common platforms
-      const validDomains = [
-        'discord.gg',
-        'discord.com',
-        't.me',
-        'telegram.me',
-        'slack.com',
-        'teams.microsoft.com',
-        'zoom.us',
-        'meet.google.com',
-        'facebook.com',
-        'fb.com',
-        'whatsapp.com',
-        'line.me',
-        'github.com',
-        'gitlab.com'
-      ];
-
-      const urlObj = new URL(url);
-      const hostname = urlObj.hostname.toLowerCase();
-      
-      // Check if it's a known safe domain or allow any HTTPS URL
-      const isKnownDomain = validDomains.some(domain => 
-        hostname === domain || hostname.endsWith('.' + domain)
-      );
-
-      if (!isKnownDomain && !url.startsWith('https://')) {
-        return {
-          isValid: false,
-          error: 'For security reasons, external links must use HTTPS or be from known platforms'
-        };
-      }
-
-      return { isValid: true };
-    } catch (error) {
-      return {
-        isValid: false,
-        error: 'Invalid URL format'
-      };
-    }
-  }
 
   /**
    * Format group data from database
