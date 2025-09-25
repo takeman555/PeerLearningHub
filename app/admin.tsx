@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import AuthGuard from '../components/AuthGuard';
 import { useAuth } from '../contexts/AuthContext';
 import { hasAdminAccess } from '../utils/permissions';
+import { permissionManager } from '../services/permissionManager';
 import ResourceEditor from '../components/ResourceEditor';
 import resourceService from '../services/resourceService';
 import { Resource } from '../types/resources';
@@ -51,6 +52,8 @@ export default function Admin() {
   const [editingResource, setEditingResource] = useState<Resource | undefined>();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loadingResources, setLoadingResources] = useState(false);
+  const [hasAdminPermission, setHasAdminPermission] = useState(false);
+  const [permissionLoading, setPermissionLoading] = useState(true);
 
   // All hooks must be called before any conditional returns
   const [systemStats] = useState<SystemStats>({
@@ -61,6 +64,35 @@ export default function Admin() {
     totalBookings: 89,
     revenue: 2450000
   });
+
+  // Check admin permissions on component mount
+  useEffect(() => {
+    const checkPermissions = async () => {
+      if (!user?.id) {
+        setHasAdminPermission(false);
+        setPermissionLoading(false);
+        return;
+      }
+
+      try {
+        // Try both permission methods for compatibility
+        const oldStyleAccess = hasAdminAccess(user.user_metadata?.role);
+        const newStylePermission = await permissionManager.canManageGroups(user.id);
+        
+        // Allow access if either method grants permission
+        const hasAccess = oldStyleAccess || newStylePermission.allowed;
+        setHasAdminPermission(hasAccess);
+      } catch (error) {
+        console.error('Permission check error:', error);
+        // Fallback to old style check if new style fails
+        setHasAdminPermission(hasAdminAccess(user.user_metadata?.role));
+      } finally {
+        setPermissionLoading(false);
+      }
+    };
+
+    checkPermissions();
+  }, [user]);
 
   const [users] = useState<User[]>([
     {
@@ -204,11 +236,19 @@ export default function Admin() {
     loadResources();
   };
 
-  // Check if user has admin access (after all hooks)
-  const userRole = user?.user_metadata?.role;
+  // Show loading while checking permissions
+  if (permissionLoading) {
+    return (
+      <AuthGuard>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>権限を確認中...</Text>
+        </View>
+      </AuthGuard>
+    );
+  }
 
   // If user doesn't have admin access, show access denied
-  if (!hasAdminAccess(userRole)) {
+  if (!hasAdminPermission) {
     return (
       <AuthGuard>
         <View style={styles.accessDeniedContainer}>
@@ -217,6 +257,10 @@ export default function Admin() {
           <Text style={styles.accessDeniedText}>
             この画面にアクセスする権限がありません。{'\n'}
             管理者権限が必要です。
+          </Text>
+          <Text style={styles.debugInfo}>
+            ユーザーID: {user?.id || 'なし'}{'\n'}
+            メタデータロール: {user?.user_metadata?.role || 'なし'}
           </Text>
           <TouchableOpacity 
             style={styles.backButton}
@@ -1174,7 +1218,27 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 32,
+    marginBottom: 16,
+  },
+  debugInfo: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+    fontFamily: 'monospace',
+    backgroundColor: '#f3f4f6',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6b7280',
   },
   backButton: {
     backgroundColor: '#3b82f6',
