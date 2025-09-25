@@ -8,27 +8,69 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "scheme": "peerlearninghub",
+    "description": "Connect, learn, and grow together with peers in an innovative learning platform",
+    "privacy": "public",
+    "platforms": ["ios", "android"],
     "splash": {
       "image": "./assets/PLH_logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.peerlearninghub.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "CFBundleDisplayName": "PeerLearningHub",
+        "NSCameraUsageDescription": "This app uses the camera to allow users to share photos in learning communities.",
+        "NSPhotoLibraryUsageDescription": "This app accesses your photo library to allow you to share images in learning discussions.",
+        "NSMicrophoneUsageDescription": "This app uses the microphone for peer learning sessions and voice communications."
+      },
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.peerlearninghub.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
     "plugins": [
-      "expo-router"
-    ]
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow PeerLearningHub to access your camera to share photos in learning communities."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow PeerLearningHub to access your photos to share images in learning discussions.",
+          "savePhotosPermission": "Allow PeerLearningHub to save photos from learning sessions."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "peer-learning-hub-2025"
+      }
+    }
   }
 }

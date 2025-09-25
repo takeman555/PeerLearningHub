@@ -1,0 +1,40 @@
+{
+  "app_name": "PeerLearningHub",
+  "version": "1.0.0",
+  "bundle_id": "com.peerlearninghub.app",
+  "category": "Education",
+  "age_rating": "4+",
+  "languages": ["Japanese", "English"],
+  "app_store": {
+    "title": "PeerLearningHub - Learn Together",
+    "subtitle": "Connect, Learn, Grow with Peers",
+    "description": {
+      "japanese": "PeerLearningHubは、学習者同士が繋がり、共に成長できる革新的な学習プラットフォームです。\n\n主な機能：\n• 学習コミュニティへの参加\n• 学習リソースの共有と発見\n• ピアセッションの開催・参加\n• プロジェクト管理とコラボレーション\n• 宿泊施設予約との連携\n• 進捗追跡と目標設定\n\n特徴：\n✓ 直感的で使いやすいインターフェース\n✓ リアルタイムでの学習者同士の交流\n✓ 多様な学習分野に対応\n✓ セキュアで安全な環境\n✓ オフライン機能対応\n\nPeerLearningHubで、一人では達成できない学習目標を仲間と共に実現しましょう。今すぐダウンロードして、新しい学習体験を始めてください！",
+      "english": "PeerLearningHub is an innovative learning platform where learners connect and grow together.\n\nKey Features:\n• Join learning communities\n• Share and discover learning resources\n• Host and participate in peer sessions\n• Project management and collaboration\n• Accommodation booking integration\n• Progress tracking and goal setting\n\nHighlights:\n✓ Intuitive and user-friendly interface\n✓ Real-time interaction between learners\n✓ Support for diverse learning fields\n✓ Secure and safe environment\n✓ Offline functionality support\n\nWith PeerLearningHub, achieve learning goals that you couldn't reach alone, together with peers. Download now and start your new learning experience!"
+    },
+    "keywords": [
+      "learning", "education", "peer", "community", "study", "collaboration", 
+      "resources", "sessions", "projects", "progress", "goals", "social learning",
+      "学習", "教育", "ピア", "コミュニティ", "勉強", "協力", "リソース", "セッション"
+    ],
+    "promotional_text": {
+      "japanese": "仲間と共に学び、成長する新しい学習体験を始めよう！",
+      "english": "Start a new learning experience - learn and grow together with peers!"
+    }
+  },
+  "google_play": {
+    "title": "PeerLearningHub - Learn Together",
+    "short_description": {
+      "japanese": "学習者同士が繋がり、共に成長できる革新的な学習プラットフォーム",
+      "english": "Innovative learning platform where learners connect and grow together"
+    },
+    "full_description": {
+      "japanese": "PeerLearningHubは、学習者同士が繋がり、共に成長できる革新的な学習プラットフォームです。一人では達成困難な学習目標も、仲間と共に実現できます。\n\n🎓 主な機能\n• 学習コミュニティへの参加 - 同じ目標を持つ仲間と出会える\n• 学習リソースの共有 - 有用な教材や情報を共有・発見\n• ピアセッションの開催・参加 - リアルタイムで学習セッションを実施\n• プロジェクト管理 - チームでの学習プロジェクトを効率的に管理\n• 宿泊施設予約連携 - 学習旅行や合宿の手配も簡単\n• 進捗追跡 - 学習の進捗を可視化し、モチベーションを維持\n\n✨ 特徴\n• 直感的で使いやすいデザイン\n• セキュアで安全な学習環境\n• 多様な学習分野に対応\n• オフライン機能で場所を選ばず学習\n• 日本語・英語対応\n\n🚀 こんな方におすすめ\n• 一人での学習に限界を感じている方\n• 同じ目標を持つ仲間を見つけたい方\n• 効率的な学習方法を探している方\n• 学習のモチベーションを維持したい方\n\nPeerLearningHubで、新しい学習体験を始めましょう！",
+      "english": "PeerLearningHub is an innovative learning platform where learners connect and grow together. Achieve learning goals that would be difficult to reach alone, together with peers.\n\n🎓 Key Features\n• Join Learning Communities - Meet peers with similar goals\n• Share Learning Resources - Share and discover useful materials\n• Host & Join Peer Sessions - Conduct real-time learning sessions\n• Project Management - Efficiently manage team learning projects\n• Accommodation Booking Integration - Easy arrangement for learning trips\n• Progress Tracking - Visualize learning progress and maintain motivation\n\n✨ Highlights\n• Intuitive and user-friendly design\n• Secure and safe learning environment\n• Support for diverse learning fields\n• Offline functionality for learning anywhere\n• Japanese and English support\n\n🚀 Perfect for\n• Those who feel limited by solo learning\n• Those looking for peers with similar goals\n• Those seeking efficient learning methods\n• Those wanting to maintain learning motivation\n\nStart your new learning experience with PeerLearningHub!"
+    }
+  },
+  "privacy_policy_url": "https://peerlearninghub.com/privacy",
+  "terms_of_service_url": "https://peerlearninghub.com/terms",
+  "support_url": "https://peerlearninghub.com/support",
+  "marketing_url": "https://peerlearninghub.com"
+}

@@ -1,18 +1,50 @@
 import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { productionConfig, validateProductionConfig } from './production';
+
+// Environment detection
+const isProduction = process.env.EXPO_PUBLIC_ENVIRONMENT === 'production';
 
 // Supabase configuration
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://your-project.supabase.co';
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key';
 
-// Create Supabase client with AsyncStorage for session persistence
+// Validate production configuration
+if (isProduction) {
+  try {
+    validateProductionConfig();
+  } catch (error) {
+    console.error('Production configuration validation failed:', error.message);
+    throw error;
+  }
+}
+
+// Create Supabase client with enhanced configuration for production
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
+    // Production-specific auth settings
+    ...(isProduction && {
+      flowType: 'pkce',
+      debug: false,
+    }),
   },
+  // Production-specific client settings
+  ...(isProduction && {
+    realtime: {
+      params: {
+        eventsPerSecond: 10, // Rate limit for realtime events
+      },
+    },
+    global: {
+      headers: {
+        'X-Client-Info': `PeerLearningHub/${productionConfig.app.version}`,
+      },
+    },
+  }),
 });
 
 // Database types for the PeerLearningHub schema

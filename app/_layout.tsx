@@ -2,11 +2,13 @@ import React from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '../contexts/AuthContext';
+import { MembershipProvider } from '../contexts/MembershipContext';
 
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <Stack
+      <MembershipProvider>
+        <Stack
         screenOptions={{
           headerStyle: { 
             backgroundColor: '#3b82f6',
@@ -100,8 +102,16 @@ export default function RootLayout() {
             presentation: 'modal',
           }} 
         />
+        <Stack.Screen 
+          name="membership" 
+          options={{ 
+            title: 'メンバーシップ',
+            presentation: 'modal',
+          }} 
+        />
       </Stack>
       <StatusBar style="light" />
+      </MembershipProvider>
     </AuthProvider>
   );
 }
