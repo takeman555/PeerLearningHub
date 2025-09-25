@@ -10,7 +10,7 @@ module.exports = {
     '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|react-native-purchases|@supabase)/)',
+    'node_modules/(?!(react-native|@react-native|react-native-purchases|@supabase|expo)/)',
   ],
   collectCoverageFrom: [
     'services/**/*.{js,ts}',
@@ -21,7 +21,7 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   testEnvironment: 'node',
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
   globals: {

@@ -33,7 +33,7 @@ const TEST_SUITES = [
   },
   {
     name: '外部システム連携テスト',
-    file: 'externalSystems.test.ts',
+    file: 'external-systems-integration.test.ts',
     description: '要件 3.3: 宿泊予約・学習リソース連携機能',
     required: true,
   },

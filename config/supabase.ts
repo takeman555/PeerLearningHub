@@ -4,10 +4,18 @@ import { productionConfig, validateProductionConfig } from './production';
 
 // Environment detection
 const isProduction = process.env.EXPO_PUBLIC_ENVIRONMENT === 'production';
+const isStaging = process.env.EXPO_PUBLIC_ENVIRONMENT === 'staging';
 
-// Supabase configuration
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://your-project.supabase.co';
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key';
+// Supabase configuration with environment-specific fallbacks
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 
+  (isProduction ? '' : 'https://your-project.supabase.co');
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 
+  (isProduction ? '' : 'your-anon-key');
+
+// Validate required configuration in production
+if (isProduction && (!supabaseUrl || !supabaseAnonKey)) {
+  throw new Error('Production Supabase configuration is missing. Please check environment variables.');
+}
 
 // Validate production configuration
 if (isProduction) {
