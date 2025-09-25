@@ -122,20 +122,23 @@ export default function GroupCard({ group, onJoinGroup }: GroupCardProps) {
       </View>
       
       {group.externalLink && (
-        <TouchableOpacity 
-          style={styles.joinGroupButton}
-          onPress={handleJoinGroup}
-        >
-          <Text style={styles.joinGroupButtonText}>
-            {getPlatformIcon(group.externalLink)} {getPlatformName(group.externalLink)}で参加
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.externalLinkSection}>
+          <Text style={styles.externalLinkLabel}>🔗 外部参加リンク</Text>
+          <TouchableOpacity 
+            style={styles.joinGroupButton}
+            onPress={handleJoinGroup}
+          >
+            <Text style={styles.joinGroupButtonText}>
+              {getPlatformIcon(group.externalLink)} {getPlatformName(group.externalLink)}で参加
+            </Text>
+          </TouchableOpacity>
+        </View>
       )}
       
       {!group.externalLink && (
         <View style={styles.noLinkContainer}>
           <Text style={styles.noLinkText}>
-            参加リンクは準備中です
+            🔗 外部参加リンクは準備中です
           </Text>
         </View>
       )}
@@ -196,6 +199,19 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontWeight: '500',
   },
+  externalLinkSection: {
+    backgroundColor: '#f0fdf4',
+    borderRadius: 8,
+    padding: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#10b981',
+  },
+  externalLinkLabel: {
+    fontSize: 12,
+    color: '#166534',
+    fontWeight: '600',
+    marginBottom: 8,
+  },
   joinGroupButton: {
     backgroundColor: '#10b981',
     paddingVertical: 12,
@@ -212,15 +228,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   noLinkContainer: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#fef3c7',
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
     alignItems: 'center',
+    borderLeftWidth: 3,
+    borderLeftColor: '#f59e0b',
   },
   noLinkText: {
-    color: '#6b7280',
+    color: '#92400e',
     fontSize: 14,
-    fontStyle: 'italic',
+    fontWeight: '500',
   },
 });

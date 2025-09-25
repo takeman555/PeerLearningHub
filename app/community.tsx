@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert,
 import { useRouter } from 'expo-router';
 import AuthGuard from '../components/AuthGuard';
 import GroupCard from '../components/GroupCard';
+import AdminGroupCreator from '../components/AdminGroupCreator';
 import { useAuth } from '../contexts/AuthContext';
 import { communityFeedService, Post } from '../services/communityFeedService';
 import { membersService, Member } from '../services/membersService';
@@ -34,7 +35,11 @@ export default function Community() {
   // Permission states
   const [canCreatePost, setCanCreatePost] = useState(false);
   const [canViewMembers, setCanViewMembers] = useState(false);
+  const [canManageGroups, setCanManageGroups] = useState(false);
   const [permissionsLoading, setPermissionsLoading] = useState(true);
+  
+  // Admin group creation state
+  const [showGroupCreator, setShowGroupCreator] = useState(false);
 
   // Load data and permissions on component mount and user change
   useEffect(() => {
@@ -52,23 +57,27 @@ export default function Community() {
     if (!user?.id) {
       setCanCreatePost(false);
       setCanViewMembers(false);
+      setCanManageGroups(false);
       setPermissionsLoading(false);
       return;
     }
 
     try {
       setPermissionsLoading(true);
-      const [postPermission, memberPermission] = await Promise.all([
+      const [postPermission, memberPermission, groupPermission] = await Promise.all([
         permissionManager.canCreatePost(user.id),
-        permissionManager.canViewMembers(user.id)
+        permissionManager.canViewMembers(user.id),
+        permissionManager.canManageGroups(user.id)
       ]);
       
       setCanCreatePost(postPermission.allowed);
       setCanViewMembers(memberPermission.allowed);
+      setCanManageGroups(groupPermission.allowed);
     } catch (error) {
       console.error('Error loading permissions:', error);
       setCanCreatePost(false);
       setCanViewMembers(false);
+      setCanManageGroups(false);
     } finally {
       setPermissionsLoading(false);
     }
@@ -257,10 +266,11 @@ export default function Community() {
         />
       }
     >
-      {/* New Post - Only for members with permission */}
-      {user && canCreatePost ? (
+      {/* Permission-based Post Creation Form - Requirements: 2.3 */}
+      {user && canCreatePost && !permissionsLoading ? (
         <View style={styles.newPostContainer}>
           <Text style={styles.newPostTitle}>💭 何を共有しますか？</Text>
+          <Text style={styles.memberOnlyBadge}>👥 メンバー限定機能</Text>
           <TextInput
             style={styles.newPostInput}
             placeholder="学習の進捗、質問、発見を共有しましょう... (#タグ を使ってカテゴリ分けできます)"
@@ -285,10 +295,13 @@ export default function Community() {
           </TouchableOpacity>
         </View>
       ) : user && !canCreatePost && !permissionsLoading ? (
-        <View style={styles.visitorNoticeContainer}>
-          <Text style={styles.visitorNoticeTitle}>📝 投稿権限について</Text>
-          <Text style={styles.visitorNoticeText}>
-            投稿機能はメンバーのみご利用いただけます。メンバーシップの詳細については管理者にお問い合わせください。
+        <View style={styles.restrictedAccessContainer}>
+          <Text style={styles.restrictedAccessTitle}>🔒 メンバー限定機能</Text>
+          <Text style={styles.restrictedAccessText}>
+            投稿機能はメンバーのみご利用いただけます。現在のアカウントには投稿権限がありません。
+          </Text>
+          <Text style={styles.restrictedAccessSubtext}>
+            メンバーシップの詳細については管理者にお問い合わせください。
           </Text>
         </View>
       ) : !user ? (
@@ -303,6 +316,11 @@ export default function Community() {
           >
             <Text style={styles.loginPromptButtonText}>ログイン・登録</Text>
           </TouchableOpacity>
+        </View>
+      ) : permissionsLoading ? (
+        <View style={styles.loadingPermissionsContainer}>
+          <ActivityIndicator size="small" color="#3b82f6" />
+          <Text style={styles.loadingPermissionsText}>権限を確認中...</Text>
         </View>
       ) : null}
 
@@ -458,7 +476,10 @@ export default function Community() {
       >
         <View style={styles.membersHeader}>
           <Text style={styles.membersTitle}>🌍 コミュニティメンバー</Text>
-          <Text style={styles.membersSubtitle}>実際に登録されているメンバーとつながりましょう</Text>
+          <Text style={styles.membersSubtitle}>実際にデータベースに登録されているメンバーとつながりましょう</Text>
+          <View style={styles.membersBadge}>
+            <Text style={styles.membersBadgeText}>📊 実際のユーザーデータ</Text>
+          </View>
         </View>
         
         {membersLoading ? (
@@ -512,10 +533,16 @@ export default function Community() {
           ))
         ) : (
           <View style={styles.emptyStateContainer}>
-            <Text style={styles.emptyStateTitle}>👥 メンバーが見つかりません</Text>
+            <Text style={styles.emptyStateTitle}>👥 登録メンバーが見つかりません</Text>
             <Text style={styles.emptyStateText}>
-              まだ登録されているメンバーがいないか、読み込みに問題があります。
+              現在、データベースに登録されているアクティブなメンバーがいません。
+              {'\n'}新しいメンバーの登録をお待ちください。
             </Text>
+            <View style={styles.databaseInfoBadge}>
+              <Text style={styles.databaseInfoText}>
+                💾 データベースから実際のユーザー情報を表示
+              </Text>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -548,9 +575,25 @@ export default function Community() {
       <View style={styles.groupsHeader}>
         <Text style={styles.groupsTitle}>👥 コミュニティグループ</Text>
         <Text style={styles.groupsSubtitle}>
-          興味のあるトピックでグループに参加して、メンバーと交流しましょう
+          データベースから取得したグループに参加して、メンバーと交流しましょう
         </Text>
+        <View style={styles.groupsBadge}>
+          <Text style={styles.groupsBadgeText}>🗄️ データベース連携</Text>
+        </View>
       </View>
+      
+      {/* Admin-only Group Creation Interface - Requirements: 6.3 */}
+      {user && canManageGroups && !permissionsLoading && (
+        <View style={styles.adminGroupSection}>
+          <Text style={styles.adminSectionTitle}>🔧 管理者専用機能</Text>
+          <TouchableOpacity 
+            style={styles.createGroupButton}
+            onPress={() => setShowGroupCreator(true)}
+          >
+            <Text style={styles.createGroupButtonText}>➕ 新しいグループを作成</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       
       {groupsLoading ? (
         <View style={styles.loadingContainer}>
@@ -569,9 +612,14 @@ export default function Community() {
         <View style={styles.emptyStateContainer}>
           <Text style={styles.emptyStateTitle}>👥 グループが見つかりません</Text>
           <Text style={styles.emptyStateText}>
-            まだグループが作成されていないか、読み込みに問題があります。
-            {'\n'}管理者がグループを設定するまでお待ちください。
+            現在、データベースにアクティブなグループが登録されていません。
+            {'\n'}管理者がグループを作成するまでお待ちください。
           </Text>
+          <View style={styles.databaseInfoBadge}>
+            <Text style={styles.databaseInfoText}>
+              🗄️ データベースから実際のグループ情報を表示
+            </Text>
+          </View>
           <TouchableOpacity 
             style={styles.refreshButton}
             onPress={() => loadGroups()}
@@ -618,6 +666,15 @@ export default function Community() {
       {activeTab === 'feed' && renderFeed()}
       {activeTab === 'members' && renderMembers()}
       {activeTab === 'groups' && renderGroups()}
+      
+      {/* Admin Group Creator Modal */}
+      <AdminGroupCreator
+        visible={showGroupCreator}
+        onClose={() => setShowGroupCreator(false)}
+        onGroupCreated={() => {
+          loadGroups(); // Refresh groups list
+        }}
+      />
     </View>
     </AuthGuard>
   );
@@ -668,11 +725,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    borderLeftWidth: 4,
+    borderLeftColor: '#10b981',
   },
   newPostTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1f2937',
+    marginBottom: 8,
+  },
+  memberOnlyBadge: {
+    fontSize: 12,
+    color: '#10b981',
+    fontWeight: '600',
+    backgroundColor: '#ecfdf5',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
     marginBottom: 12,
   },
   newPostInput: {
@@ -709,6 +779,47 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1,
     borderColor: '#dbeafe',
+  },
+  restrictedAccessContainer: {
+    backgroundColor: '#fef3c7',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#fbbf24',
+    borderLeftWidth: 4,
+    borderLeftColor: '#f59e0b',
+  },
+  restrictedAccessTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#92400e',
+    marginBottom: 8,
+  },
+  restrictedAccessText: {
+    fontSize: 14,
+    color: '#92400e',
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  restrictedAccessSubtext: {
+    fontSize: 12,
+    color: '#a16207',
+    fontStyle: 'italic',
+  },
+  loadingPermissionsContainer: {
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingPermissionsText: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginLeft: 8,
   },
   visitorNoticeTitle: {
     fontSize: 16,
@@ -826,6 +937,33 @@ const styles = StyleSheet.create({
   membersSubtitle: {
     fontSize: 14,
     color: '#6b7280',
+    marginBottom: 8,
+  },
+  membersBadge: {
+    backgroundColor: '#dbeafe',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    alignSelf: 'flex-start',
+  },
+  membersBadgeText: {
+    fontSize: 12,
+    color: '#1e40af',
+    fontWeight: '600',
+  },
+  databaseInfoBadge: {
+    backgroundColor: '#e0f2fe',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 12,
+    alignSelf: 'center',
+  },
+  databaseInfoText: {
+    fontSize: 11,
+    color: '#0277bd',
+    fontWeight: '500',
+    textAlign: 'center',
   },
   memberCard: {
     backgroundColor: 'white',
@@ -932,6 +1070,47 @@ const styles = StyleSheet.create({
   groupsSubtitle: {
     fontSize: 14,
     color: '#6b7280',
+    marginBottom: 8,
+  },
+  groupsBadge: {
+    backgroundColor: '#e0f2fe',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    alignSelf: 'flex-start',
+  },
+  groupsBadgeText: {
+    fontSize: 12,
+    color: '#0277bd',
+    fontWeight: '600',
+  },
+  adminGroupSection: {
+    backgroundColor: '#fef3c7',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#f59e0b',
+  },
+  adminSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#92400e',
+    marginBottom: 12,
+  },
+  createGroupButton: {
+    backgroundColor: '#dc2626',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  createGroupButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
   groupCard: {
     backgroundColor: 'white',

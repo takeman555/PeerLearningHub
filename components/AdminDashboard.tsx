@@ -36,8 +36,13 @@ export default function AdminDashboard({ onNavigateToGroups }: AdminDashboardPro
 
   useEffect(() => {
     checkAdminAccess();
-    loadData();
   }, [user]);
+
+  useEffect(() => {
+    if (hasAdminAccess) {
+      loadData();
+    }
+  }, [hasAdminAccess, user]);
 
   const checkAdminAccess = async () => {
     if (!user?.id) {
@@ -55,7 +60,7 @@ export default function AdminDashboard({ onNavigateToGroups }: AdminDashboardPro
   };
 
   const loadData = async () => {
-    if (!user?.id || !hasAdminAccess) return;
+    if (!user?.id) return;
 
     try {
       const [groupsResponse, cleanupStatus] = await Promise.all([
