@@ -1,0 +1,39 @@
+{
+  "slack": {
+    "enabled": true,
+    "channel": "#dev-notifications",
+    "username": "PeerLearningHub Test Bot",
+    "iconEmoji": ":test_tube:"
+  },
+  "email": {
+    "enabled": false,
+    "recipients": [
+      "dev-team@peerlearninghub.com"
+    ]
+  },
+  "github": {
+    "enabled": true,
+    "createIssueOnFailure": true,
+    "labels": ["bug", "test-failure", "ci/cd"]
+  },
+  "thresholds": {
+    "coverageMinimum": 80,
+    "performanceMaxTime": 5000,
+    "maxFailedTests": 0
+  },
+  "notifications": {
+    "onSuccess": {
+      "slack": true,
+      "email": false
+    },
+    "onFailure": {
+      "slack": true,
+      "email": true,
+      "github": true
+    },
+    "onCoverageBelow": {
+      "slack": true,
+      "email": false
+    }
+  }
+}

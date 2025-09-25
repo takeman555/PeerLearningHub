@@ -1,0 +1,61 @@
+{
+  "logLevel": "DEBUG",
+  "maxLocalLogs": 2000,
+  "logRetentionDays": 30,
+  "enableConsoleOutput": true,
+  "enableRemoteLogging": false,
+  "categories": {
+    "auth": {
+      "enabled": true,
+      "level": "INFO"
+    },
+    "community": {
+      "enabled": true,
+      "level": "INFO"
+    },
+    "external_systems": {
+      "enabled": true,
+      "level": "INFO"
+    },
+    "membership": {
+      "enabled": true,
+      "level": "INFO"
+    },
+    "performance": {
+      "enabled": true,
+      "level": "INFO"
+    },
+    "security": {
+      "enabled": true,
+      "level": "WARN"
+    },
+    "system": {
+      "enabled": true,
+      "level": "INFO"
+    },
+    "ui": {
+      "enabled": true,
+      "level": "DEBUG"
+    },
+    "database": {
+      "enabled": true,
+      "level": "INFO"
+    },
+    "api": {
+      "enabled": true,
+      "level": "INFO"
+    }
+  },
+  "filters": {
+    "excludePatterns": [
+      "debug_noise",
+      "verbose_ui_events"
+    ],
+    "sensitiveFields": [
+      "password",
+      "token",
+      "apiKey",
+      "secret"
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "errorMonitoring": {
+    "enabled": true,
+    "severityThreshold": "medium",
+    "notificationChannels": [
+      "console",
+      "storage"
+    ],
+    "maxReportsPerSession": 50,
+    "retryAttempts": 3,
+    "autoReporting": true
+  },
+  "crashReporting": {
+    "enabled": true,
+    "maxUserActions": 20,
+    "collectDeviceInfo": true,
+    "collectMemoryInfo": true,
+    "collectNetworkInfo": true,
+    "autoSubmit": true
+  },
+  "alertManager": {
+    "enabled": true,
+    "defaultRulesEnabled": true,
+    "maxNotifications": 100,
+    "notificationRetention": 7,
+    "cooldownPeriod": 5
+  },
+  "remoteReporting": {
+    "enabled": false,
+    "endpoint": "",
+    "apiKey": "",
+    "batchSize": 10,
+    "uploadInterval": 300
+  }
+}

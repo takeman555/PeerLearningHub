@@ -1,0 +1,194 @@
+name: Build Production
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build-production-android:
+    name: Build Android Production
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+        
+      - name: Configure production environment
+        run: |
+          echo "$PRODUCTION_ENV" > .env.production
+          echo "$EAS_JSON" > eas.json
+        env:
+          PRODUCTION_ENV: ${{ secrets.PRODUCTION_ENV }}
+          EAS_JSON: ${{ secrets.EAS_JSON }}
+          
+      - name: Build Android production
+        run: |
+          eas build --platform android --profile production --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          
+      - name: Sign Android build
+        run: |
+          # Android signing will be handled by EAS Build
+          echo "Android build signed automatically by EAS"
+          
+      - name: Upload production build
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-production-build
+          path: |
+            *.apk
+            *.aab
+          retention-days: 90
+          
+      - name: Store build metadata
+        run: |
+          echo "Build Date: $(date)" > build-metadata.txt
+          echo "Commit SHA: ${{ github.sha }}" >> build-metadata.txt
+          echo "Version: ${{ github.ref_name }}" >> build-metadata.txt
+          
+      - name: Upload build metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-metadata
+          path: build-metadata.txt
+          retention-days: 90
+
+  build-production-ios:
+    name: Build iOS Production
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+        
+      - name: Configure production environment
+        run: |
+          echo "$PRODUCTION_ENV" > .env.production
+          echo "$EAS_JSON" > eas.json
+        env:
+          PRODUCTION_ENV: ${{ secrets.PRODUCTION_ENV }}
+          EAS_JSON: ${{ secrets.EAS_JSON }}
+          
+      - name: Build iOS production
+        run: |
+          eas build --platform ios --profile production --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          
+      - name: Upload production build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-production-build
+          path: |
+            *.ipa
+          retention-days: 90
+          
+      - name: Store build metadata
+        run: |
+          echo "Build Date: $(date)" > build-metadata.txt
+          echo "Commit SHA: ${{ github.sha }}" >> build-metadata.txt
+          echo "Version: ${{ github.ref_name }}" >> build-metadata.txt
+          
+      - name: Upload build metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-metadata
+          path: build-metadata.txt
+          retention-days: 90
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-production-android, build-production-ios]
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download Android build
+        uses: actions/download-artifact@v4
+        with:
+          name: android-production-build
+          path: ./android-build/
+          
+      - name: Download iOS build
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-production-build
+          path: ./ios-build/
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./android-build/*
+            ./ios-build/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify-production-build:
+    name: Notify Production Build Complete
+    runs-on: ubuntu-latest
+    needs: [build-production-android, build-production-ios, create-release]
+    if: always()
+    
+    steps:
+      - name: Notify build status
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#releases'
+          text: 'Production build completed for PeerLearningHub ${{ github.ref_name }}'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()

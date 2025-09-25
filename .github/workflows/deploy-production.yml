@@ -1,0 +1,354 @@
+name: Deploy to Production
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy'
+        required: true
+        default: 'v1.0.0'
+      skip_approval:
+        description: 'Skip manual approval (emergency deployment)'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  pre-production-validation:
+    name: Pre-production Validation
+    runs-on: ubuntu-latest
+    outputs:
+      validation_passed: ${{ steps.validate.outputs.passed }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run comprehensive test suite
+        run: |
+          npm run test:all-functional
+          npm run test:performance
+          npm run test:security
+          
+      - name: Validate production configuration
+        run: |
+          node scripts/validateProductionConfig.js
+        env:
+          PRODUCTION_ENV: ${{ secrets.PRODUCTION_ENV }}
+          
+      - name: Check database migrations
+        run: |
+          node scripts/validateProductionMigrations.js
+        env:
+          PRODUCTION_DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          
+      - name: Security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+          
+      - name: Set validation result
+        id: validate
+        run: echo "passed=true" >> $GITHUB_OUTPUT
+
+  manual-approval:
+    name: Manual Approval Required
+    runs-on: ubuntu-latest
+    needs: pre-production-validation
+    if: needs.pre-production-validation.outputs.validation_passed == 'true' && github.event.inputs.skip_approval != 'true'
+    environment: production-approval
+    
+    steps:
+      - name: Request manual approval
+        run: |
+          echo "Manual approval required for production deployment"
+          echo "Version: ${{ github.event.inputs.version || github.event.release.tag_name }}"
+          echo "Commit: ${{ github.sha }}"
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [pre-production-validation, manual-approval]
+    if: always() && needs.pre-production-validation.outputs.validation_passed == 'true' && (needs.manual-approval.result == 'success' || github.event.inputs.skip_approval == 'true')
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+        
+      - name: Configure production environment
+        run: |
+          echo "$PRODUCTION_ENV" > .env.production
+          echo "$EAS_JSON" > eas.json
+        env:
+          PRODUCTION_ENV: ${{ secrets.PRODUCTION_ENV }}
+          EAS_JSON: ${{ secrets.EAS_JSON }}
+          
+      - name: Create production backup
+        run: |
+          node scripts/createProductionBackup.js
+        env:
+          PRODUCTION_DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          BACKUP_STORAGE_URL: ${{ secrets.BACKUP_STORAGE_URL }}
+          
+      - name: Build production release
+        run: |
+          eas build --platform all --profile production --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          
+      - name: Deploy to production
+        run: |
+          eas update --branch production --message "Production release - ${{ github.event.inputs.version || github.event.release.tag_name }}"
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          
+      - name: Run production migrations
+        run: |
+          node scripts/runProductionMigrations.js
+        env:
+          PRODUCTION_DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          
+      - name: Submit to app stores
+        run: |
+          eas submit --platform all --profile production --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          
+      - name: Store deployment metadata
+        run: |
+          echo "{
+            \"deploymentId\": \"${{ github.run_id }}\",
+            \"version\": \"${{ github.event.inputs.version || github.event.release.tag_name }}\",
+            \"commitSha\": \"${{ github.sha }}\",
+            \"deployedAt\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+            \"environment\": \"production\",
+            \"deployedBy\": \"${{ github.actor }}\",
+            \"approvedBy\": \"${{ github.actor }}\"
+          }" > production-deployment.json
+          
+      - name: Upload deployment metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-deployment-metadata
+          path: production-deployment.json
+          retention-days: 365
+
+  post-production-monitoring:
+    name: Post-production Monitoring
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Wait for deployment propagation
+        run: |
+          sleep 300  # Wait 5 minutes for deployment to propagate
+          
+      - name: Run production health checks
+        run: |
+          node scripts/productionHealthCheck.js
+        env:
+          PRODUCTION_API_URL: ${{ secrets.PRODUCTION_API_URL }}
+          HEALTH_CHECK_TIMEOUT: 30000
+          
+      - name: Monitor error rates
+        run: |
+          node scripts/monitorErrorRates.js
+        env:
+          MONITORING_API_KEY: ${{ secrets.MONITORING_API_KEY }}
+          
+      - name: Check performance metrics
+        run: |
+          node scripts/checkPerformanceMetrics.js
+        env:
+          PERFORMANCE_MONITORING_KEY: ${{ secrets.PERFORMANCE_MONITORING_KEY }}
+          
+      - name: Validate user flows
+        run: |
+          npm run test:critical-paths:production
+        env:
+          PRODUCTION_APP_URL: ${{ secrets.PRODUCTION_APP_URL }}
+
+  notify-production-deployment:
+    name: Notify Production Deployment
+    runs-on: ubuntu-latest
+    needs: [deploy-production, post-production-monitoring]
+    if: always()
+    
+    steps:
+      - name: Download deployment metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: production-deployment-metadata
+          path: ./
+          
+      - name: Notify team
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "text": "🚀 Production Deployment Complete",
+              "attachments": [
+                {
+                  "color": "${{ needs.post-production-monitoring.result == 'success' && 'good' || 'danger' }}",
+                  "title": "PeerLearningHub Production Release",
+                  "fields": [
+                    {
+                      "title": "Version",
+                      "value": "${{ github.event.inputs.version || github.event.release.tag_name }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Status",
+                      "value": "${{ needs.post-production-monitoring.result == 'success' && 'Success' || 'Monitoring Issues' }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Deployed by",
+                      "value": "${{ github.actor }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Deployment ID",
+                      "value": "${{ github.run_id }}",
+                      "short": true
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "button",
+                      "text": "View Production App",
+                      "url": "${{ secrets.PRODUCTION_APP_URL }}"
+                    },
+                    {
+                      "type": "button",
+                      "text": "Monitoring Dashboard",
+                      "url": "${{ secrets.MONITORING_DASHBOARD_URL }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
+        
+      - name: Create deployment announcement
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ github.event.inputs.version || github.event.release.tag_name }}';
+            const status = '${{ needs.post-production-monitoring.result }}';
+            
+            const announcement = `
+            ## 🚀 Production Deployment: ${version}
+            
+            **Status**: ${status === 'success' ? '✅ Successful' : '⚠️ Completed with monitoring issues'}
+            **Deployed**: ${new Date().toISOString()}
+            **Deployed by**: ${{ github.actor }}
+            
+            ### What's New
+            - Check the [release notes](${context.payload.release?.html_url || ''}) for details
+            
+            ### Monitoring
+            - [Production Dashboard](${{ secrets.MONITORING_DASHBOARD_URL }})
+            - [Error Tracking](${{ secrets.ERROR_TRACKING_URL }})
+            - [Performance Metrics](${{ secrets.PERFORMANCE_DASHBOARD_URL }})
+            
+            ### Support
+            If you encounter any issues, please report them in the #support channel.
+            `;
+            
+            // This would typically post to a team communication channel
+            console.log(announcement);
+
+  emergency-rollback:
+    name: Emergency Rollback
+    runs-on: ubuntu-latest
+    needs: [deploy-production, post-production-monitoring]
+    if: failure() && needs.deploy-production.result == 'success'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+        
+      - name: Execute emergency rollback
+        run: |
+          node scripts/emergencyRollback.js
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          PRODUCTION_DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          BACKUP_STORAGE_URL: ${{ secrets.BACKUP_STORAGE_URL }}
+          
+      - name: Notify emergency rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "text": "🚨 EMERGENCY ROLLBACK EXECUTED",
+              "attachments": [
+                {
+                  "color": "danger",
+                  "title": "Production rollback performed due to deployment issues",
+                  "fields": [
+                    {
+                      "title": "Failed Version",
+                      "value": "${{ github.event.inputs.version || github.event.release.tag_name }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Rollback Time",
+                      "value": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+                      "short": true
+                    }
+                  ],
+                  "footer": "Immediate investigation required"
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

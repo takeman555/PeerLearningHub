@@ -1,0 +1,119 @@
+name: Build Staging
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch:
+
+jobs:
+  build-staging-android:
+    name: Build Android Staging
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+        
+      - name: Configure EAS credentials
+        run: |
+          echo "$EAS_JSON" > eas.json
+        env:
+          EAS_JSON: ${{ secrets.EAS_JSON }}
+          
+      - name: Build Android staging
+        run: |
+          eas build --platform android --profile staging --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          
+      - name: Upload staging build
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-staging-build
+          path: |
+            *.apk
+            *.aab
+          retention-days: 14
+
+  build-staging-ios:
+    name: Build iOS Staging
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+        
+      - name: Configure EAS credentials
+        run: |
+          echo "$EAS_JSON" > eas.json
+        env:
+          EAS_JSON: ${{ secrets.EAS_JSON }}
+          
+      - name: Build iOS staging
+        run: |
+          eas build --platform ios --profile staging --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          
+      - name: Upload staging build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-staging-build
+          path: |
+            *.ipa
+          retention-days: 14
+
+  notify-staging-build:
+    name: Notify Staging Build Complete
+    runs-on: ubuntu-latest
+    needs: [build-staging-android, build-staging-ios]
+    if: always()
+    
+    steps:
+      - name: Notify build status
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#dev-notifications'
+          text: 'Staging build completed for PeerLearningHub'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()

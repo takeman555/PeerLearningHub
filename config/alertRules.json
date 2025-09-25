@@ -1,0 +1,121 @@
+[
+  {
+    "name": "Critical Error Alert",
+    "enabled": true,
+    "conditions": [
+      {
+        "type": "severity",
+        "operator": "equals",
+        "value": "critical",
+        "timeWindow": 5
+      }
+    ],
+    "actions": [
+      {
+        "type": "console_log",
+        "config": {
+          "level": "error"
+        }
+      },
+      {
+        "type": "user_notification",
+        "config": {
+          "title": "Critical Error",
+          "message": "A critical error has occurred in the application"
+        }
+      }
+    ],
+    "cooldownPeriod": 5
+  },
+  {
+    "name": "High Error Rate Alert",
+    "enabled": true,
+    "conditions": [
+      {
+        "type": "error_rate",
+        "operator": "greater_than",
+        "value": 10,
+        "timeWindow": 10
+      }
+    ],
+    "actions": [
+      {
+        "type": "console_log",
+        "config": {
+          "level": "warn"
+        }
+      }
+    ],
+    "cooldownPeriod": 15
+  },
+  {
+    "name": "Crash Detection Alert",
+    "enabled": true,
+    "conditions": [
+      {
+        "type": "crash_count",
+        "operator": "greater_than",
+        "value": 0,
+        "timeWindow": 1
+      }
+    ],
+    "actions": [
+      {
+        "type": "console_log",
+        "config": {
+          "level": "error"
+        }
+      },
+      {
+        "type": "user_notification",
+        "config": {
+          "title": "App Crash Detected",
+          "message": "The application has crashed. A report has been generated."
+        }
+      }
+    ],
+    "cooldownPeriod": 1
+  },
+  {
+    "name": "Authentication Error Alert",
+    "enabled": true,
+    "conditions": [
+      {
+        "type": "error_type",
+        "operator": "equals",
+        "value": "auth",
+        "timeWindow": 5
+      }
+    ],
+    "actions": [
+      {
+        "type": "console_log",
+        "config": {
+          "level": "warn"
+        }
+      }
+    ],
+    "cooldownPeriod": 10
+  },
+  {
+    "name": "Database Error Alert",
+    "enabled": true,
+    "conditions": [
+      {
+        "type": "error_type",
+        "operator": "equals",
+        "value": "database",
+        "timeWindow": 5
+      }
+    ],
+    "actions": [
+      {
+        "type": "console_log",
+        "config": {
+          "level": "error"
+        }
+      }
+    ],
+    "cooldownPeriod": 10
+  }
+]

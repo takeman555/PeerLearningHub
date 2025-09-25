@@ -1,0 +1,270 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment even if tests fail'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  pre-deployment-checks:
+    name: Pre-deployment Checks
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run pre-deployment tests
+        id: tests
+        run: |
+          npm run test:functional
+          npm run test:integration
+        continue-on-error: true
+        
+      - name: Check deployment readiness
+        id: check
+        run: |
+          if [[ "${{ steps.tests.outcome }}" == "success" || "${{ github.event.inputs.force_deploy }}" == "true" ]]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+          fi
+
+  deploy-staging:
+    name: Deploy to Staging Environment
+    runs-on: ubuntu-latest
+    needs: pre-deployment-checks
+    if: needs.pre-deployment-checks.outputs.should_deploy == 'true'
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+        
+      - name: Configure staging environment
+        run: |
+          echo "$STAGING_ENV" > .env.staging
+          echo "$EAS_JSON" > eas.json
+        env:
+          STAGING_ENV: ${{ secrets.STAGING_ENV }}
+          EAS_JSON: ${{ secrets.EAS_JSON }}
+          
+      - name: Build for staging
+        run: |
+          eas build --platform all --profile staging --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          
+      - name: Deploy to Expo Updates
+        run: |
+          eas update --branch staging --message "Staging deployment - ${{ github.sha }}"
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          
+      - name: Update staging database
+        run: |
+          node scripts/runStagingMigrations.js
+        env:
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          
+      - name: Warm up staging environment
+        run: |
+          node scripts/warmupStaging.js
+        env:
+          STAGING_API_URL: ${{ secrets.STAGING_API_URL }}
+          
+      - name: Store deployment metadata
+        run: |
+          echo "{
+            \"deploymentId\": \"${{ github.run_id }}\",
+            \"commitSha\": \"${{ github.sha }}\",
+            \"branch\": \"${{ github.ref_name }}\",
+            \"deployedAt\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+            \"environment\": \"staging\",
+            \"deployedBy\": \"${{ github.actor }}\"
+          }" > staging-deployment.json
+          
+      - name: Upload deployment metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-deployment-metadata
+          path: staging-deployment.json
+          retention-days: 30
+
+  post-deployment-tests:
+    name: Post-deployment Tests
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Wait for deployment to be ready
+        run: |
+          sleep 60  # Wait for deployment to stabilize
+          
+      - name: Run smoke tests
+        run: |
+          npm run test:smoke:staging
+        env:
+          STAGING_API_URL: ${{ secrets.STAGING_API_URL }}
+          
+      - name: Run end-to-end tests
+        run: |
+          npm run test:e2e:staging
+        env:
+          STAGING_APP_URL: ${{ secrets.STAGING_APP_URL }}
+          
+      - name: Performance tests
+        run: |
+          npm run test:performance:staging
+        env:
+          STAGING_API_URL: ${{ secrets.STAGING_API_URL }}
+
+  notify-deployment:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, post-deployment-tests]
+    if: always()
+    
+    steps:
+      - name: Download deployment metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: staging-deployment-metadata
+          path: ./
+          
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "text": "Staging Deployment Update",
+              "attachments": [
+                {
+                  "color": "${{ needs.post-deployment-tests.result == 'success' && 'good' || 'danger' }}",
+                  "title": "PeerLearningHub Staging Deployment",
+                  "fields": [
+                    {
+                      "title": "Status",
+                      "value": "${{ needs.post-deployment-tests.result == 'success' && 'Success' || 'Failed' }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Branch",
+                      "value": "${{ github.ref_name }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Commit",
+                      "value": "${{ github.sha }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Deployed by",
+                      "value": "${{ github.actor }}",
+                      "short": true
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "button",
+                      "text": "View Staging App",
+                      "url": "${{ secrets.STAGING_APP_URL }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
+
+  rollback-on-failure:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, post-deployment-tests]
+    if: failure()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+        
+      - name: Rollback to previous version
+        run: |
+          node scripts/rollbackStaging.js
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          
+      - name: Notify rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "text": ":warning: Staging Rollback Executed",
+              "attachments": [
+                {
+                  "color": "warning",
+                  "title": "Automatic rollback performed due to deployment failure",
+                  "fields": [
+                    {
+                      "title": "Branch",
+                      "value": "${{ github.ref_name }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Failed Commit",
+                      "value": "${{ github.sha }}",
+                      "short": true
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

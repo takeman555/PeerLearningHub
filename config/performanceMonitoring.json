@@ -1,0 +1,39 @@
+{
+  "enabled": true,
+  "collectSystemMetrics": true,
+  "collectNetworkMetrics": true,
+  "collectUserExperienceMetrics": true,
+  "monitoringInterval": 30000,
+  "alertThresholds": {
+    "responseTime": {
+      "screenTransition": 1000,
+      "apiCall": 3000,
+      "databaseQuery": 2000,
+      "renderTime": 500
+    },
+    "systemMetrics": {
+      "memoryUsage": 150,
+      "cpuUsage": 80
+    },
+    "networkMetrics": {
+      "latency": 1000,
+      "errorRate": 5
+    },
+    "userExperience": {
+      "appStartTime": 3000,
+      "timeToInteractive": 5000,
+      "frameDropRate": 10
+    }
+  },
+  "storage": {
+    "maxMetricsCount": 500,
+    "maxAlertsCount": 100,
+    "retentionDays": 7
+  },
+  "reporting": {
+    "enableConsoleLogging": true,
+    "enableLocalStorage": true,
+    "enableRemoteReporting": false,
+    "reportingInterval": 300000
+  }
+}
