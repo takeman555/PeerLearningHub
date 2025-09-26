@@ -26,9 +26,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     let isMounted = true;
 
-    // Get initial session
+    // 最適化: 初期セッション取得を遅延実行
     const getInitialSession = async () => {
       try {
+        // 起動時間を短縮するため、セッション取得を少し遅延
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         const currentSession = await authService.getCurrentSession();
         const currentUser = await authService.getCurrentUser();
         
@@ -45,6 +48,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     };
 
+    // 非同期で初期セッションを取得（ブロッキングしない）
     getInitialSession();
 
     // Skip auth state change listeners to prevent infinite loops

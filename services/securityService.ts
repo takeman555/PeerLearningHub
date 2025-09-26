@@ -10,6 +10,7 @@ import {
   passwordPolicy,
   auditConfig 
 } from '../config/security';
+import { encryptionService, EncryptedData } from './encryptionService';
 
 export interface SecurityAuditEvent {
   userId?: string;
@@ -465,22 +466,85 @@ export class SecurityService {
   }
 
   /**
-   * Encrypt data (simplified version for testing)
+   * Encrypt sensitive data using enhanced encryption service
    */
-  async encryptData(data: string): Promise<string> {
-    const key = await this.generateEncryptionKey();
-    return `encrypted-${Buffer.from(data).toString('base64')}-${key.substring(0, 8)}`;
+  async encryptData(data: string): Promise<EncryptedData> {
+    try {
+      return await encryptionService.encryptData(data);
+    } catch (error) {
+      console.error('Data encryption failed:', error);
+      throw new Error('Failed to encrypt data');
+    }
   }
 
   /**
-   * Decrypt data (simplified version for testing)
+   * Decrypt sensitive data using enhanced encryption service
    */
-  async decryptData(encryptedData: string): Promise<string> {
-    if (encryptedData.startsWith('encrypted-')) {
-      const base64Part = encryptedData.split('-')[1];
-      return Buffer.from(base64Part, 'base64').toString();
+  async decryptData(encryptedData: EncryptedData): Promise<string> {
+    try {
+      return await encryptionService.decryptData(encryptedData);
+    } catch (error) {
+      console.error('Data decryption failed:', error);
+      throw new Error('Failed to decrypt data');
     }
-    throw new Error('Invalid encrypted data format');
+  }
+
+  /**
+   * Encrypt personal identifiable information
+   */
+  async encryptPII(piiData: {
+    email?: string;
+    phone?: string;
+    address?: string;
+    name?: string;
+  }): Promise<{ [key: string]: EncryptedData }> {
+    try {
+      return await encryptionService.encryptPII(piiData);
+    } catch (error) {
+      console.error('PII encryption failed:', error);
+      throw new Error('Failed to encrypt PII data');
+    }
+  }
+
+  /**
+   * Decrypt personal identifiable information
+   */
+  async decryptPII(encryptedPII: { [key: string]: EncryptedData }): Promise<{
+    email?: string;
+    phone?: string;
+    address?: string;
+    name?: string;
+  }> {
+    try {
+      return await encryptionService.decryptPII(encryptedPII);
+    } catch (error) {
+      console.error('PII decryption failed:', error);
+      throw new Error('Failed to decrypt PII data');
+    }
+  }
+
+  /**
+   * Encrypt database field
+   */
+  async encryptDatabaseField(tableName: string, fieldName: string, value: string): Promise<string> {
+    try {
+      return await encryptionService.encryptDatabaseField(tableName, fieldName, value);
+    } catch (error) {
+      console.error('Database field encryption failed:', error);
+      throw new Error('Failed to encrypt database field');
+    }
+  }
+
+  /**
+   * Decrypt database field
+   */
+  async decryptDatabaseField(encryptedValue: string): Promise<string> {
+    try {
+      return await encryptionService.decryptDatabaseField(encryptedValue);
+    } catch (error) {
+      console.error('Database field decryption failed:', error);
+      throw new Error('Failed to decrypt database field');
+    }
   }
 
   /**

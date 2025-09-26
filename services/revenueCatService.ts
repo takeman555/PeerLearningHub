@@ -46,6 +46,11 @@ export class RevenueCatService {
    * ユーザーをRevenueCatに登録
    */
   async registerUser(userId: string, userAttributes?: Record<string, string>): Promise<void> {
+    if (!this.isInitialized) {
+      console.log('RevenueCat disabled - skipping user registration:', userId);
+      return;
+    }
+
     try {
       await RevenueCatConfig.setUserID(userId);
       
@@ -72,6 +77,11 @@ export class RevenueCatService {
     yearly?: PurchasesPackage;
     lifetime?: PurchasesPackage;
   }> {
+    if (!this.isInitialized) {
+      console.warn('RevenueCat not configured - returning empty plans');
+      return {};
+    }
+
     try {
       const offerings = await RevenueCatConfig.getOfferings();
       const defaultOffering = offerings.find(o => o.identifier === 'default');
@@ -98,12 +108,8 @@ export class RevenueCatService {
 
       return plans;
     } catch (error) {
-      if (__DEV__) {
-        console.warn('RevenueCat not configured - returning empty plans');
-        return {};
-      }
-      console.error('Failed to get available plans:', error);
-      throw error;
+      console.warn('RevenueCat not configured - returning empty plans');
+      return {};
     }
   }
 

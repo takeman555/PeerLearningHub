@@ -96,22 +96,7 @@
     "rollback:verify": "node scripts/rollbackVerification.js",
     "optimize:startup": "jest tests/startupPerformance.test.ts --verbose",
     "analyze:bundle": "node scripts/analyzeBundleSize.js",
-    "optimize:bundle": "npm run analyze:bundle && npm run optimize:startup",
-    "test:performance:all": "node scripts/testAllPerformanceOptimizations.js",
-    "test:startup": "node scripts/testStartupOptimization.js",
-    "test:navigation": "node scripts/testNavigationOptimization.js",
-    "test:assets": "node scripts/testAssetOptimization.js",
-    "test:memory": "node scripts/testMemoryOptimization.js",
-    "test:external-systems": "jest tests/external-systems-integration.test.ts --verbose",
-    "test:all": "node tests/run-all-tests.js",
-    "staging:verify": "node scripts/finalStagingVerification.js",
-    "staging:warmup": "node scripts/warmupStaging.js",
-    "staging:migrate": "node scripts/runStagingMigrations.js",
-    "submit:check": "node scripts/checkSubmissionReadiness.js",
-    "submit:stores": "node scripts/appStoreSubmission.js",
-    "submit:ios": "eas submit --platform ios --profile production",
-    "submit:android": "eas submit --platform android --profile production",
-    "monitor:submission": "node scripts/monitorSubmissionStatus.js"
+    "optimize:bundle": "npm run analyze:bundle && npm run optimize:startup"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
@@ -134,14 +119,12 @@
   "devDependencies": {
     "@babel/preset-env": "^7.28.3",
     "@babel/preset-typescript": "^7.27.1",
-    "@expo/metro-config": "^54.0.5",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.1.0",
     "babel-jest": "^29.7.0",
     "dotenv": "^16.4.7",
     "jest": "^29.7.0",
     "jest-junit": "^16.0.0",
-    "metro-react-native-babel-transformer": "^0.77.0",
     "react-test-renderer": "^19.1.0",
     "typescript": "~5.9.2",
     "xml2js": "^0.6.2"

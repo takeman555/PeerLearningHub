@@ -1,0 +1,207 @@
+{
+  "startTime": "2025-09-25T22:58:57.058Z",
+  "endTime": "2025-09-25T23:02:03.059Z",
+  "duration": 186001,
+  "overallStatus": "failed",
+  "results": {
+    "functional": {
+      "passed": 0,
+      "failed": 6,
+      "tests": [
+        {
+          "name": "Database Migrations",
+          "passed": false,
+          "timestamp": "2025-09-25T22:58:57.480Z",
+          "error": "Command failed: node scripts/runStagingMigrations.js\nStaging migrations failed: Error: Missing staging Supabase credentials\n    at runStagingMigrations (/Users/tizuka0/Documents/Kiro/PeerLearningHub/scripts/runStagingMigrations.js:18:11)\n    at Object.<anonymous> (/Users/tizuka0/Documents/Kiro/PeerLearningHub/scripts/runStagingMigrations.js:59:3)\n    at Module._compile (node:internal/modules/cjs/loader:1730:14)\n    at Object..js (node:internal/modules/cjs/loader:1895:10)\n    at Module.load (node:internal/modules/cjs/loader:1465:32)\n    at Function._load (node:internal/modules/cjs/loader:1282:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\n    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)\n    at node:internal/main/run_main_module:36:49\n"
+        },
+        {
+          "name": "認証システムテスト",
+          "passed": false,
+          "timestamp": "2025-09-25T22:59:07.647Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        },
+        {
+          "name": "コミュニティ機能テスト",
+          "passed": false,
+          "timestamp": "2025-09-25T22:59:17.663Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        },
+        {
+          "name": "外部システム連携テスト",
+          "passed": false,
+          "timestamp": "2025-09-25T22:59:27.677Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        },
+        {
+          "name": "メンバーシップ機能テスト",
+          "passed": false,
+          "timestamp": "2025-09-25T22:59:37.700Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        },
+        {
+          "name": "Integrated Functional Test Suite",
+          "passed": false,
+          "timestamp": "2025-09-25T22:59:48.049Z",
+          "error": "Command failed: npm run test:functional\nFAIL tests/functional-test-suite.test.ts\n  ● Test suite failed to run\n\n    /Users/tizuka0/Documents/Kiro/PeerLearningHub/node_modules/react-native/jest/setup.js: 'loose' mode configuration must be the same for @babel/plugin-transform-class-properties, @babel/plugin-transform-private-methods and @babel/plugin-transform-private-property-in-object (when they are enabled).\n\n    If you already set the same 'loose' mode for these plugins in your config, it's possible that they are enabled multiple times with different options.\n    You can re-run Babel with the BABEL_SHOW_CONFIG_FOR environment variable to show the loaded configuration:\n    \tnpx cross-env BABEL_SHOW_CONFIG_FOR=/Users/tizuka0/Documents/Kiro/PeerLearningHub/node_modules/react-native/jest/setup.js <your build command>\n    See https://babeljs.io/docs/configuration#print-effective-configs for more info.\n\n      at enableFeature (node_modules/@babel/helper-create-class-features-plugin/lib/features.js:50:13)\n      at PluginPass.pre (node_modules/@babel/helper-create-class-features-plugin/lib/index.js:100:35)\n      at PluginPass.sync (node_modules/@babel/core/lib/gensync-utils/async.js:30:25)\n      at PluginPass.sync (node_modules/gensync/index.js:182:19)\n      at PluginPass.<anonymous> (node_modules/gensync/index.js:210:24)\n      at transformFile (node_modules/@babel/core/lib/transformation/index.js:75:19)\n          at transformFile.next (<anonymous>)\n      at run (node_modules/@babel/core/lib/transformation/index.js:25:12)\n          at run.next (<anonymous>)\n      at transform (node_modules/@babel/core/lib/transform.js:22:33)\n          at transform.next (<anonymous>)\n      at evaluateSync (node_modules/gensync/index.js:251:28)\n      at sync (node_modules/gensync/index.js:89:14)\n      at stopHiding - secret - don't use this - v1 (node_modules/@babel/core/lib/errors/rewrite-stack-trace.js:47:12)\n      at transformSync (node_modules/@babel/core/lib/transform.js:42:76)\n      at ScriptTransformer.transformSource (node_modules/@jest/transform/build/ScriptTransformer.js:545:31)\n      at ScriptTransformer._transformAndBuildScript (node_modules/@jest/transform/build/ScriptTransformer.js:674:40)\n      at ScriptTransformer.transform (node_modules/@jest/transform/build/ScriptTransformer.js:726:19)\n\nTest Suites: 1 failed, 1 total\nTests:       0 total\nSnapshots:   0 total\nTime:        0.416 s\nRan all test suites matching /tests\\/functional-test-suite.test.ts/i.\n"
+        }
+      ]
+    },
+    "performance": {
+      "passed": 1,
+      "failed": 5,
+      "tests": [
+        {
+          "name": "アプリ起動時間テスト",
+          "passed": false,
+          "timestamp": "2025-09-25T22:59:58.073Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        },
+        {
+          "name": "画面遷移時間テスト",
+          "passed": false,
+          "timestamp": "2025-09-25T23:00:08.101Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        },
+        {
+          "name": "APIレスポンス時間テスト",
+          "passed": false,
+          "timestamp": "2025-09-25T23:00:18.120Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        },
+        {
+          "name": "メモリ使用量テスト",
+          "passed": true,
+          "timestamp": "2025-09-25T23:00:18.129Z",
+          "memoryIncreaseMB": 3.7874298095703125
+        },
+        {
+          "name": "ネットワーク効率性テスト",
+          "passed": false,
+          "timestamp": "2025-09-25T23:00:28.160Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        },
+        {
+          "name": "Integrated Performance Test Suite",
+          "passed": false,
+          "timestamp": "2025-09-25T23:00:29.907Z",
+          "error": "Command failed: npm run test:performance\nFAIL tests/performance-test-suite.test.ts\n  ● Test suite failed to run\n\n    /Users/tizuka0/Documents/Kiro/PeerLearningHub/node_modules/react-native/jest/setup.js: 'loose' mode configuration must be the same for @babel/plugin-transform-class-properties, @babel/plugin-transform-private-methods and @babel/plugin-transform-private-property-in-object (when they are enabled).\n\n    If you already set the same 'loose' mode for these plugins in your config, it's possible that they are enabled multiple times with different options.\n    You can re-run Babel with the BABEL_SHOW_CONFIG_FOR environment variable to show the loaded configuration:\n    \tnpx cross-env BABEL_SHOW_CONFIG_FOR=/Users/tizuka0/Documents/Kiro/PeerLearningHub/node_modules/react-native/jest/setup.js <your build command>\n    See https://babeljs.io/docs/configuration#print-effective-configs for more info.\n\n      at enableFeature (node_modules/@babel/helper-create-class-features-plugin/lib/features.js:50:13)\n      at PluginPass.pre (node_modules/@babel/helper-create-class-features-plugin/lib/index.js:100:35)\n      at PluginPass.sync (node_modules/@babel/core/lib/gensync-utils/async.js:30:25)\n      at PluginPass.sync (node_modules/gensync/index.js:182:19)\n      at PluginPass.<anonymous> (node_modules/gensync/index.js:210:24)\n      at transformFile (node_modules/@babel/core/lib/transformation/index.js:75:19)\n          at transformFile.next (<anonymous>)\n      at run (node_modules/@babel/core/lib/transformation/index.js:25:12)\n          at run.next (<anonymous>)\n      at transform (node_modules/@babel/core/lib/transform.js:22:33)\n          at transform.next (<anonymous>)\n      at evaluateSync (node_modules/gensync/index.js:251:28)\n      at sync (node_modules/gensync/index.js:89:14)\n      at stopHiding - secret - don't use this - v1 (node_modules/@babel/core/lib/errors/rewrite-stack-trace.js:47:12)\n      at transformSync (node_modules/@babel/core/lib/transform.js:42:76)\n      at ScriptTransformer.transformSource (node_modules/@jest/transform/build/ScriptTransformer.js:545:31)\n      at ScriptTransformer._transformAndBuildScript (node_modules/@jest/transform/build/ScriptTransformer.js:674:40)\n      at ScriptTransformer.transform (node_modules/@jest/transform/build/ScriptTransformer.js:726:19)\n\nTest Suites: 1 failed, 1 total\nTests:       0 total\nSnapshots:   0 total\nTime:        0.373 s\nRan all test suites matching /tests\\/performance-test-suite.test.ts/i.\n"
+        }
+      ]
+    },
+    "security": {
+      "passed": 1,
+      "failed": 5,
+      "tests": [
+        {
+          "name": "HTTPS強制テスト",
+          "passed": false,
+          "timestamp": "2025-09-25T23:00:39.911Z",
+          "error": "Protocol \"http:\" not supported. Expected \"https:\""
+        },
+        {
+          "name": "セキュリティヘッダーテスト",
+          "passed": false,
+          "timestamp": "2025-09-25T23:00:49.939Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        },
+        {
+          "name": "認証要件テスト",
+          "passed": false,
+          "timestamp": "2025-09-25T23:00:59.956Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        },
+        {
+          "name": "入力検証テスト",
+          "passed": false,
+          "timestamp": "2025-09-25T23:01:10.234Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        },
+        {
+          "name": "レート制限テスト",
+          "passed": true,
+          "timestamp": "2025-09-25T23:01:10.256Z",
+          "totalRequests": 20,
+          "rateLimitedRequests": 0
+        },
+        {
+          "name": "Integrated Security Test Suite",
+          "passed": false,
+          "timestamp": "2025-09-25T23:01:12.701Z",
+          "error": "Command failed: npm run test:security\nFAIL tests/security-test-suite.test.ts\n  ● Test suite failed to run\n\n    /Users/tizuka0/Documents/Kiro/PeerLearningHub/node_modules/react-native/jest/setup.js: 'loose' mode configuration must be the same for @babel/plugin-transform-class-properties, @babel/plugin-transform-private-methods and @babel/plugin-transform-private-property-in-object (when they are enabled).\n\n    If you already set the same 'loose' mode for these plugins in your config, it's possible that they are enabled multiple times with different options.\n    You can re-run Babel with the BABEL_SHOW_CONFIG_FOR environment variable to show the loaded configuration:\n    \tnpx cross-env BABEL_SHOW_CONFIG_FOR=/Users/tizuka0/Documents/Kiro/PeerLearningHub/node_modules/react-native/jest/setup.js <your build command>\n    See https://babeljs.io/docs/configuration#print-effective-configs for more info.\n\n      at enableFeature (node_modules/@babel/helper-create-class-features-plugin/lib/features.js:50:13)\n      at PluginPass.pre (node_modules/@babel/helper-create-class-features-plugin/lib/index.js:100:35)\n      at PluginPass.sync (node_modules/@babel/core/lib/gensync-utils/async.js:30:25)\n      at PluginPass.sync (node_modules/gensync/index.js:182:19)\n      at PluginPass.<anonymous> (node_modules/gensync/index.js:210:24)\n      at transformFile (node_modules/@babel/core/lib/transformation/index.js:75:19)\n          at transformFile.next (<anonymous>)\n      at run (node_modules/@babel/core/lib/transformation/index.js:25:12)\n          at run.next (<anonymous>)\n      at transform (node_modules/@babel/core/lib/transform.js:22:33)\n          at transform.next (<anonymous>)\n      at evaluateSync (node_modules/gensync/index.js:251:28)\n      at sync (node_modules/gensync/index.js:89:14)\n      at stopHiding - secret - don't use this - v1 (node_modules/@babel/core/lib/errors/rewrite-stack-trace.js:47:12)\n      at transformSync (node_modules/@babel/core/lib/transform.js:42:76)\n      at ScriptTransformer.transformSource (node_modules/@jest/transform/build/ScriptTransformer.js:545:31)\n      at ScriptTransformer._transformAndBuildScript (node_modules/@jest/transform/build/ScriptTransformer.js:674:40)\n      at ScriptTransformer.transform (node_modules/@jest/transform/build/ScriptTransformer.js:726:19)\n\nTest Suites: 1 failed, 1 total\nTests:       0 total\nSnapshots:   0 total\nTime:        0.368 s\nRan all test suites matching /tests\\/security-test-suite.test.ts/i.\n"
+        }
+      ]
+    },
+    "userAcceptance": {
+      "passed": 0,
+      "failed": 5,
+      "tests": [
+        {
+          "name": "ユーザー登録フロー",
+          "passed": false,
+          "timestamp": "2025-09-25T23:01:22.745Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        },
+        {
+          "name": "ログインフロー",
+          "passed": false,
+          "timestamp": "2025-09-25T23:01:32.762Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        },
+        {
+          "name": "コミュニティ投稿フロー",
+          "passed": false,
+          "timestamp": "2025-09-25T23:01:43.011Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        },
+        {
+          "name": "メンバーシップ購入フロー",
+          "passed": false,
+          "timestamp": "2025-09-25T23:01:53.043Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        },
+        {
+          "name": "外部システム連携フロー",
+          "passed": false,
+          "timestamp": "2025-09-25T23:02:03.058Z",
+          "error": "getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+        }
+      ]
+    }
+  },
+  "errors": [
+    "functional: Database Migrations - Command failed: node scripts/runStagingMigrations.js\nStaging migrations failed: Error: Missing staging Supabase credentials\n    at runStagingMigrations (/Users/tizuka0/Documents/Kiro/PeerLearningHub/scripts/runStagingMigrations.js:18:11)\n    at Object.<anonymous> (/Users/tizuka0/Documents/Kiro/PeerLearningHub/scripts/runStagingMigrations.js:59:3)\n    at Module._compile (node:internal/modules/cjs/loader:1730:14)\n    at Object..js (node:internal/modules/cjs/loader:1895:10)\n    at Module.load (node:internal/modules/cjs/loader:1465:32)\n    at Function._load (node:internal/modules/cjs/loader:1282:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\n    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)\n    at node:internal/main/run_main_module:36:49\n",
+    "functional: 認証システムテスト - getaddrinfo ENOTFOUND staging.peerlearninghub.com",
+    "functional: コミュニティ機能テスト - getaddrinfo ENOTFOUND staging.peerlearninghub.com",
+    "functional: 外部システム連携テスト - getaddrinfo ENOTFOUND staging.peerlearninghub.com",
+    "functional: メンバーシップ機能テスト - getaddrinfo ENOTFOUND staging.peerlearninghub.com",
+    "functional: Integrated Functional Test Suite - Command failed: npm run test:functional\nFAIL tests/functional-test-suite.test.ts\n  ● Test suite failed to run\n\n    /Users/tizuka0/Documents/Kiro/PeerLearningHub/node_modules/react-native/jest/setup.js: 'loose' mode configuration must be the same for @babel/plugin-transform-class-properties, @babel/plugin-transform-private-methods and @babel/plugin-transform-private-property-in-object (when they are enabled).\n\n    If you already set the same 'loose' mode for these plugins in your config, it's possible that they are enabled multiple times with different options.\n    You can re-run Babel with the BABEL_SHOW_CONFIG_FOR environment variable to show the loaded configuration:\n    \tnpx cross-env BABEL_SHOW_CONFIG_FOR=/Users/tizuka0/Documents/Kiro/PeerLearningHub/node_modules/react-native/jest/setup.js <your build command>\n    See https://babeljs.io/docs/configuration#print-effective-configs for more info.\n\n      at enableFeature (node_modules/@babel/helper-create-class-features-plugin/lib/features.js:50:13)\n      at PluginPass.pre (node_modules/@babel/helper-create-class-features-plugin/lib/index.js:100:35)\n      at PluginPass.sync (node_modules/@babel/core/lib/gensync-utils/async.js:30:25)\n      at PluginPass.sync (node_modules/gensync/index.js:182:19)\n      at PluginPass.<anonymous> (node_modules/gensync/index.js:210:24)\n      at transformFile (node_modules/@babel/core/lib/transformation/index.js:75:19)\n          at transformFile.next (<anonymous>)\n      at run (node_modules/@babel/core/lib/transformation/index.js:25:12)\n          at run.next (<anonymous>)\n      at transform (node_modules/@babel/core/lib/transform.js:22:33)\n          at transform.next (<anonymous>)\n      at evaluateSync (node_modules/gensync/index.js:251:28)\n      at sync (node_modules/gensync/index.js:89:14)\n      at stopHiding - secret - don't use this - v1 (node_modules/@babel/core/lib/errors/rewrite-stack-trace.js:47:12)\n      at transformSync (node_modules/@babel/core/lib/transform.js:42:76)\n      at ScriptTransformer.transformSource (node_modules/@jest/transform/build/ScriptTransformer.js:545:31)\n      at ScriptTransformer._transformAndBuildScript (node_modules/@jest/transform/build/ScriptTransformer.js:674:40)\n      at ScriptTransformer.transform (node_modules/@jest/transform/build/ScriptTransformer.js:726:19)\n\nTest Suites: 1 failed, 1 total\nTests:       0 total\nSnapshots:   0 total\nTime:        0.416 s\nRan all test suites matching /tests\\/functional-test-suite.test.ts/i.\n",
+    "performance: アプリ起動時間テスト - getaddrinfo ENOTFOUND staging.peerlearninghub.com",
+    "performance: 画面遷移時間テスト - getaddrinfo ENOTFOUND staging.peerlearninghub.com",
+    "performance: APIレスポンス時間テスト - getaddrinfo ENOTFOUND staging.peerlearninghub.com",
+    "performance: ネットワーク効率性テスト - getaddrinfo ENOTFOUND staging.peerlearninghub.com",
+    "performance: Integrated Performance Test Suite - Command failed: npm run test:performance\nFAIL tests/performance-test-suite.test.ts\n  ● Test suite failed to run\n\n    /Users/tizuka0/Documents/Kiro/PeerLearningHub/node_modules/react-native/jest/setup.js: 'loose' mode configuration must be the same for @babel/plugin-transform-class-properties, @babel/plugin-transform-private-methods and @babel/plugin-transform-private-property-in-object (when they are enabled).\n\n    If you already set the same 'loose' mode for these plugins in your config, it's possible that they are enabled multiple times with different options.\n    You can re-run Babel with the BABEL_SHOW_CONFIG_FOR environment variable to show the loaded configuration:\n    \tnpx cross-env BABEL_SHOW_CONFIG_FOR=/Users/tizuka0/Documents/Kiro/PeerLearningHub/node_modules/react-native/jest/setup.js <your build command>\n    See https://babeljs.io/docs/configuration#print-effective-configs for more info.\n\n      at enableFeature (node_modules/@babel/helper-create-class-features-plugin/lib/features.js:50:13)\n      at PluginPass.pre (node_modules/@babel/helper-create-class-features-plugin/lib/index.js:100:35)\n      at PluginPass.sync (node_modules/@babel/core/lib/gensync-utils/async.js:30:25)\n      at PluginPass.sync (node_modules/gensync/index.js:182:19)\n      at PluginPass.<anonymous> (node_modules/gensync/index.js:210:24)\n      at transformFile (node_modules/@babel/core/lib/transformation/index.js:75:19)\n          at transformFile.next (<anonymous>)\n      at run (node_modules/@babel/core/lib/transformation/index.js:25:12)\n          at run.next (<anonymous>)\n      at transform (node_modules/@babel/core/lib/transform.js:22:33)\n          at transform.next (<anonymous>)\n      at evaluateSync (node_modules/gensync/index.js:251:28)\n      at sync (node_modules/gensync/index.js:89:14)\n      at stopHiding - secret - don't use this - v1 (node_modules/@babel/core/lib/errors/rewrite-stack-trace.js:47:12)\n      at transformSync (node_modules/@babel/core/lib/transform.js:42:76)\n      at ScriptTransformer.transformSource (node_modules/@jest/transform/build/ScriptTransformer.js:545:31)\n      at ScriptTransformer._transformAndBuildScript (node_modules/@jest/transform/build/ScriptTransformer.js:674:40)\n      at ScriptTransformer.transform (node_modules/@jest/transform/build/ScriptTransformer.js:726:19)\n\nTest Suites: 1 failed, 1 total\nTests:       0 total\nSnapshots:   0 total\nTime:        0.373 s\nRan all test suites matching /tests\\/performance-test-suite.test.ts/i.\n",
+    "security: HTTPS強制テスト - Protocol \"http:\" not supported. Expected \"https:\"",
+    "security: セキュリティヘッダーテスト - getaddrinfo ENOTFOUND staging.peerlearninghub.com",
+    "security: 認証要件テスト - getaddrinfo ENOTFOUND staging.peerlearninghub.com",
+    "security: 入力検証テスト - getaddrinfo ENOTFOUND staging.peerlearninghub.com",
+    "security: Integrated Security Test Suite - Command failed: npm run test:security\nFAIL tests/security-test-suite.test.ts\n  ● Test suite failed to run\n\n    /Users/tizuka0/Documents/Kiro/PeerLearningHub/node_modules/react-native/jest/setup.js: 'loose' mode configuration must be the same for @babel/plugin-transform-class-properties, @babel/plugin-transform-private-methods and @babel/plugin-transform-private-property-in-object (when they are enabled).\n\n    If you already set the same 'loose' mode for these plugins in your config, it's possible that they are enabled multiple times with different options.\n    You can re-run Babel with the BABEL_SHOW_CONFIG_FOR environment variable to show the loaded configuration:\n    \tnpx cross-env BABEL_SHOW_CONFIG_FOR=/Users/tizuka0/Documents/Kiro/PeerLearningHub/node_modules/react-native/jest/setup.js <your build command>\n    See https://babeljs.io/docs/configuration#print-effective-configs for more info.\n\n      at enableFeature (node_modules/@babel/helper-create-class-features-plugin/lib/features.js:50:13)\n      at PluginPass.pre (node_modules/@babel/helper-create-class-features-plugin/lib/index.js:100:35)\n      at PluginPass.sync (node_modules/@babel/core/lib/gensync-utils/async.js:30:25)\n      at PluginPass.sync (node_modules/gensync/index.js:182:19)\n      at PluginPass.<anonymous> (node_modules/gensync/index.js:210:24)\n      at transformFile (node_modules/@babel/core/lib/transformation/index.js:75:19)\n          at transformFile.next (<anonymous>)\n      at run (node_modules/@babel/core/lib/transformation/index.js:25:12)\n          at run.next (<anonymous>)\n      at transform (node_modules/@babel/core/lib/transform.js:22:33)\n          at transform.next (<anonymous>)\n      at evaluateSync (node_modules/gensync/index.js:251:28)\n      at sync (node_modules/gensync/index.js:89:14)\n      at stopHiding - secret - don't use this - v1 (node_modules/@babel/core/lib/errors/rewrite-stack-trace.js:47:12)\n      at transformSync (node_modules/@babel/core/lib/transform.js:42:76)\n      at ScriptTransformer.transformSource (node_modules/@jest/transform/build/ScriptTransformer.js:545:31)\n      at ScriptTransformer._transformAndBuildScript (node_modules/@jest/transform/build/ScriptTransformer.js:674:40)\n      at ScriptTransformer.transform (node_modules/@jest/transform/build/ScriptTransformer.js:726:19)\n\nTest Suites: 1 failed, 1 total\nTests:       0 total\nSnapshots:   0 total\nTime:        0.368 s\nRan all test suites matching /tests\\/security-test-suite.test.ts/i.\n",
+    "userAcceptance: ユーザー登録フロー - getaddrinfo ENOTFOUND staging.peerlearninghub.com",
+    "userAcceptance: ログインフロー - getaddrinfo ENOTFOUND staging.peerlearninghub.com",
+    "userAcceptance: コミュニティ投稿フロー - getaddrinfo ENOTFOUND staging.peerlearninghub.com",
+    "userAcceptance: メンバーシップ購入フロー - getaddrinfo ENOTFOUND staging.peerlearninghub.com",
+    "userAcceptance: 外部システム連携フロー - getaddrinfo ENOTFOUND staging.peerlearninghub.com"
+  ],
+  "warnings": [
+    "Missing environment variable: STAGING_SUPABASE_URL",
+    "Missing environment variable: STAGING_SUPABASE_ANON_KEY",
+    "Missing environment variable: STAGING_REVENUECAT_API_KEY",
+    "Staging warmup failed",
+    "Rate limiting may not be configured"
+  ],
+  "summary": {
+    "totalTests": 23,
+    "totalPassed": 2,
+    "totalFailed": 21,
+    "successRate": 9
+  }
+}

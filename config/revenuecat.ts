@@ -114,11 +114,18 @@ export class RevenueCatConfig {
     }
 
     try {
+      if (!this.initialized) {
+        console.log(`RevenueCat not initialized - skipping user ID setup: ${userID}`);
+        return;
+      }
       await Purchases.logIn(userID);
       console.log(`RevenueCat user ID set to: ${userID}`);
     } catch (error) {
-      console.error('Failed to set RevenueCat user ID:', error);
-      throw error;
+      console.log(`RevenueCat disabled - skipping user ID setup: ${userID}`);
+      // 開発環境では例外を投げない
+      if (!__DEV__) {
+        throw error;
+      }
     }
   }
 
@@ -126,12 +133,43 @@ export class RevenueCatConfig {
    * ユーザーをログアウト
    */
   static async logOut(): Promise<void> {
+    if (DISABLE_REVENUECAT_IN_DEV) {
+      console.log('RevenueCat disabled - skipping logout');
+      return;
+    }
+
     try {
       await Purchases.logOut();
       console.log('RevenueCat user logged out');
     } catch (error) {
-      console.error('Failed to log out RevenueCat user:', error);
-      throw error;
+      console.log('RevenueCat disabled - skipping logout');
+      if (!__DEV__) {
+        throw error;
+      }
+    }
+  }
+
+  /**
+   * 顧客属性を設定
+   */
+  static async setCustomerAttributes(attributes: Record<string, string>): Promise<void> {
+    if (DISABLE_REVENUECAT_IN_DEV) {
+      console.log('RevenueCat disabled - skipping customer attributes');
+      return;
+    }
+
+    try {
+      if (!this.initialized) {
+        console.log('RevenueCat not initialized - skipping customer attributes');
+        return;
+      }
+      await Purchases.setAttributes(attributes);
+      console.log('Customer attributes set successfully');
+    } catch (error) {
+      console.log('Failed to set customer attributes:', error);
+      if (!__DEV__) {
+        throw error;
+      }
     }
   }
 

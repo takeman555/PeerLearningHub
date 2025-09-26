@@ -68,32 +68,39 @@ export function MembershipProvider({ children }: MembershipProviderProps) {
     willRenew?: boolean;
   }>({ isExpired: true });
 
-  // RevenueCatサービスの初期化
+  // RevenueCatサービスの最適化された初期化
   useEffect(() => {
     const initializeRevenueCat = async () => {
       try {
-        await revenueCatService.initialize();
-        
-        if (user) {
-          await revenueCatService.registerUser(user.id, {
-            email: user.email || '',
-            user_type: 'visitor'
-          });
-        }
+        // 起動時間を短縮するため、RevenueCat初期化を遅延
+        setTimeout(async () => {
+          try {
+            await revenueCatService.initialize();
+            
+            if (user) {
+              await revenueCatService.registerUser(user.id, {
+                email: user.email || '',
+                user_type: 'visitor'
+              });
+            }
+          } catch (error) {
+            // 開発環境では初期化エラーを無視
+            if (__DEV__) {
+              console.log('RevenueCat initialization skipped in development mode');
+            } else {
+              console.error('RevenueCat initialization failed:', error);
+            }
+          }
+        }, 2000); // 2秒後に初期化（起動時間に影響しない）
       } catch (error) {
-        // 開発環境では初期化エラーを無視
-        if (__DEV__) {
-          console.log('RevenueCat initialization skipped in development mode');
-        } else {
-          console.error('RevenueCat initialization failed:', error);
-        }
+        console.error('RevenueCat initialization setup failed:', error);
       }
     };
 
     initializeRevenueCat();
   }, [user]);
 
-  // メンバーシップ状態の取得
+  // 最適化されたメンバーシップ状態の取得
   const refreshMembershipStatus = async () => {
     if (!user) {
       setIsLoading(false);
@@ -103,28 +110,37 @@ export function MembershipProvider({ children }: MembershipProviderProps) {
     try {
       setIsLoading(true);
 
-      // メンバーシップ状態を取得
-      const status = await revenueCatService.getMembershipStatus();
-      setIsActive(status.isActive);
-      setMembershipType(status.membershipType);
-      setSubscriptionInfo(status.subscriptionInfo);
+      // 起動時間を短縮するため、メンバーシップ状態取得を遅延
+      setTimeout(async () => {
+        try {
+          // メンバーシップ状態を取得
+          const status = await revenueCatService.getMembershipStatus();
+          setIsActive(status.isActive);
+          setMembershipType(status.membershipType);
+          setSubscriptionInfo(status.subscriptionInfo);
 
-      // 利用可能なプランを取得
-      const plans = await revenueCatService.getAvailablePlans();
-      setAvailablePlans(plans);
+          // 利用可能なプランを取得
+          const plans = await revenueCatService.getAvailablePlans();
+          setAvailablePlans(plans);
 
-      // 期限切れ情報を取得
-      const expiry = await revenueCatService.checkMembershipExpiry();
-      setExpiryInfo(expiry);
+          // 期限切れ情報を取得
+          const expiry = await revenueCatService.checkMembershipExpiry();
+          setExpiryInfo(expiry);
+
+        } catch (error) {
+          console.warn('Failed to refresh membership status (development mode):', error.message);
+          // 開発環境では基本的な状態を設定
+          setIsActive(false);
+          setMembershipType('visitor');
+          setAvailablePlans({});
+          setExpiryInfo({ isExpired: true });
+        } finally {
+          setIsLoading(false);
+        }
+      }, 1000); // 1秒後に実行（起動時間に影響しない）
 
     } catch (error) {
-      console.warn('Failed to refresh membership status (development mode):', error.message);
-      // 開発環境では基本的な状態を設定
-      setIsActive(false);
-      setMembershipType('visitor');
-      setAvailablePlans({});
-      setExpiryInfo({ isExpired: true });
-    } finally {
+      console.error('Membership status refresh setup failed:', error);
       setIsLoading(false);
     }
   };

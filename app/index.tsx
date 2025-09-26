@@ -1,16 +1,23 @@
 import React from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link, useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 import AuthGuard from '../components/AuthGuard';
 import { useAuth } from '../contexts/AuthContext';
 import { SupabaseConnectionTest } from '../components/SupabaseConnectionTest';
 import DevTestUser from '../components/DevTestUser';
 import { hasAdminAccess, getRoleDisplayText } from '../utils/permissions';
+import { useOptimizedNavigation } from '../hooks/useOptimizedNavigation';
+import OptimizedButton from '../components/OptimizedButton';
+import OptimizedScrollView from '../components/OptimizedScrollView';
 
 export default function HomePage() {
   const { user, signOut } = useAuth();
-  const router = useRouter();
+  const { push: navigateOptimized } = useOptimizedNavigation({
+    enablePreloading: true,
+    enableMetrics: true,
+    preloadRoutes: ['/community', '/search', '/resources'],
+  });
   
   // Get user role for permission checks
   const userRole = user?.user_metadata?.role;
@@ -18,7 +25,11 @@ export default function HomePage() {
   return (
     <AuthGuard requireAuth={false}>
     <SafeAreaView style={styles.safeArea}>
-    <ScrollView style={styles.container}>
+    <OptimizedScrollView 
+      style={styles.container}
+      enablePerformanceMonitoring={true}
+      throttleScrollEvents={true}
+    >
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
@@ -31,9 +42,12 @@ export default function HomePage() {
               <Text style={styles.logoutButtonText}>ログアウト</Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>
-              <Text style={styles.loginButtonText}>ログイン</Text>
-            </TouchableOpacity>
+            <OptimizedButton
+              title="ログイン"
+              onPress={() => navigateOptimized('/login')}
+              variant="primary"
+              size="medium"
+            />
           )}
         </View>
         {user && (
@@ -177,7 +191,7 @@ export default function HomePage() {
           </Text>
         </View>
       </View>
-    </ScrollView>
+    </OptimizedScrollView>
     </SafeAreaView>
     </AuthGuard>
   );
