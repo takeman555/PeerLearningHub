@@ -1,6 +1,3 @@
-// Apply compatibility patch before importing Supabase
-import '../utils/supabaseCompatibilityPatch';
-
 import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { productionConfig, validateProductionConfig } from './production';
@@ -30,7 +27,8 @@ if (isProduction) {
   try {
     validateProductionConfig();
   } catch (error) {
-    console.error('Production configuration validation failed:', error.message);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Production configuration validation failed:', errorMessage);
     throw error;
   }
 }

@@ -1,6 +1,6 @@
 /**
  * Metro Configuration for PeerLearningHub
- * Optimized for development and production builds
+ * Optimized for development and production builds with Hermes compatibility
  */
 
 const { getDefaultConfig } = require('expo/metro-config');
@@ -17,8 +17,29 @@ config.resolver.assetExts = [
   'json',
 ];
 
+// Hermes-specific optimizations
+config.transformer = {
+  ...config.transformer,
+  minifierConfig: {
+    // Disable some optimizations that can cause issues with Hermes
+    keep_fnames: true,
+    mangle: {
+      keep_fnames: true,
+    },
+  },
+};
+
+// Ensure polyfills are loaded first - CRITICAL for Hermes compatibility
 config.serializer.getModulesRunBeforeMainModule = () => [
-  require.resolve('./utils/globalEventPatch'),
+  require.resolve('./polyfills.js'),
+  require.resolve('react-native-url-polyfill/auto'),
 ];
+
+// Additional resolver configuration to prioritize our polyfills
+config.resolver.resolverMainFields = ['react-native', 'browser', 'main'];
+config.resolver.sourceExts = ['js', 'json', 'ts', 'tsx', 'jsx'];
+
+// Additional resolver configuration for better compatibility
+config.resolver.platforms = ['ios', 'android', 'native', 'web'];
 
 module.exports = config;

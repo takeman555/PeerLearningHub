@@ -41,7 +41,10 @@ export class EncryptionService {
       !!globalThis.crypto.subtle;
 
     if (!this.supportsWebCrypto) {
-      console.warn('crypto.subtle not available, falling back to mock encryption.');
+      // Only log in development mode to avoid console spam
+      if (__DEV__) {
+        console.log('🔧 crypto.subtle not available, using mock encryption for development');
+      }
     }
 
     this.initializeEncryption();
@@ -64,8 +67,12 @@ export class EncryptionService {
         await this.generateNewKey();
       }
     } catch (error) {
-      console.error('Failed to initialize encryption:', error);
-      throw new Error('Encryption initialization failed');
+      if (__DEV__) {
+        console.log('🔧 Encryption initialization using mock mode for development');
+      } else {
+        console.error('Failed to initialize encryption:', error);
+        throw new Error('Encryption initialization failed');
+      }
     }
   }
 

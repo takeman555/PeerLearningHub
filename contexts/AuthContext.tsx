@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { authService } from '../services/auth';
+import { revenueCatService } from '../services/revenueCatService';
 
 interface AuthContextType {
   user: User | null;
@@ -63,6 +64,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // 非同期で初期セッションを取得（ブロッキングしない）
     getInitialSession();
 
+    // RevenueCatサービスを初期化（非同期、エラーを無視）
+    const initializeRevenueCat = async () => {
+      try {
+        await revenueCatService.initialize();
+      } catch (error) {
+        // RevenueCatの初期化エラーはアプリの起動を妨げない
+        console.log('RevenueCat initialization skipped in development');
+      }
+    };
+    
+    initializeRevenueCat();
+
     // Skip auth state change listeners to prevent infinite loops
     // All state management is handled manually in signIn/signUp/signOut methods
 
@@ -85,6 +98,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (user && session) {
         setSession(session);
         setUser(user);
+        
+        // RevenueCatにユーザーを登録（非同期、エラーを無視）
+        revenueCatService.registerUser(user.id, {
+          email: user.email || '',
+          user_id: user.id,
+        }).catch(error => {
+          console.log('RevenueCat user registration skipped:', error.message);
+        });
       }
       setLoading(false);
       
@@ -115,6 +136,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (user && session) {
         setSession(session);
         setUser(user);
+        
+        // RevenueCatにユーザーを登録（非同期、エラーを無視）
+        revenueCatService.registerUser(user.id, {
+          email: user.email || '',
+          user_id: user.id,
+          full_name: fullName,
+          country: country || '',
+        }).catch(error => {
+          console.log('RevenueCat user registration skipped:', error.message);
+        });
       }
       setLoading(false);
       

@@ -38,6 +38,11 @@ export class RevenueCatService {
       console.log('RevenueCatService initialized');
     } catch (error) {
       console.error('Failed to initialize RevenueCatService:', error);
+      if (__DEV__) {
+        console.warn('⚠️ RevenueCat initialization error ignored in development mode');
+        this.isInitialized = false;
+        return;
+      }
       throw error;
     }
   }

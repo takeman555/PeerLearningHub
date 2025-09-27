@@ -1,6 +1,6 @@
-import Purchases, { 
-  PurchasesOffering, 
-  PurchasesPackage, 
+import Purchases, {
+  PurchasesOffering,
+  PurchasesPackage,
   CustomerInfo,
   PurchasesError,
   LOG_LEVEL
@@ -14,9 +14,10 @@ import { Platform } from 'react-native';
 // RevenueCat API Keys
 const REVENUECAT_API_KEY_IOS = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY_IOS;
 const REVENUECAT_API_KEY_ANDROID = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY_ANDROID;
+const REVENUECAT_ENABLED = process.env.EXPO_PUBLIC_REVENUECAT_ENABLED === 'true';
 
 // 開発環境でRevenueCatを無効化するフラグ
-const DISABLE_REVENUECAT_IN_DEV = __DEV__ && (!REVENUECAT_API_KEY_IOS && !REVENUECAT_API_KEY_ANDROID);
+const DISABLE_REVENUECAT_IN_DEV = __DEV__ && (!REVENUECAT_ENABLED || (!REVENUECAT_API_KEY_IOS && !REVENUECAT_API_KEY_ANDROID));
 
 // プロダクトID定義
 export const PRODUCT_IDS = {
@@ -70,7 +71,10 @@ export class RevenueCatConfig {
 
     // 開発環境でAPIキーがない場合は初期化をスキップ
     if (DISABLE_REVENUECAT_IN_DEV) {
-      console.log('RevenueCat disabled in development mode (no API keys)');
+      if (__DEV__) {
+        console.log('🔧 RevenueCat disabled in development mode');
+        console.log('💡 To enable RevenueCat, set EXPO_PUBLIC_REVENUECAT_ENABLED=true and add API keys to .env');
+      }
       this.initialized = true;
       return;
     }
@@ -166,10 +170,12 @@ export class RevenueCatConfig {
       await Purchases.setAttributes(attributes);
       console.log('Customer attributes set successfully');
     } catch (error) {
-      console.log('Failed to set customer attributes:', error);
-      if (!__DEV__) {
-        throw error;
+      console.error('Failed to set customer attributes:', error);
+      if (__DEV__) {
+        console.warn('⚠️ RevenueCat error ignored in development mode');
+        return;
       }
+      throw error;
     }
   }
 
@@ -234,7 +240,7 @@ export class RevenueCatConfig {
   static async purchasePackage(packageToPurchase: PurchasesPackage): Promise<PurchaseResult> {
     try {
       const { customerInfo, productIdentifier } = await Purchases.purchasePackage(packageToPurchase);
-      
+
       console.log('Purchase successful:', {
         productIdentifier,
         entitlements: Object.keys(customerInfo.entitlements.active),
@@ -246,13 +252,17 @@ export class RevenueCatConfig {
       };
     } catch (error) {
       console.error('Purchase failed:', error);
-      
+
       const purchasesError = error as PurchasesError;
-      
+
+      // Check if user cancelled using error code instead of deprecated property
+      const userCancelled = purchasesError.code === 'USER_CANCELLED' ||
+        purchasesError.code === 'PURCHASE_CANCELLED';
+
       return {
         success: false,
         error: purchasesError,
-        userCancelled: purchasesError.userCancelled,
+        userCancelled,
       };
     }
   }
@@ -263,7 +273,7 @@ export class RevenueCatConfig {
   static async restorePurchases(): Promise<PurchaseResult> {
     try {
       const customerInfo = await Purchases.restorePurchases();
-      
+
       console.log('Purchases restored:', {
         entitlements: Object.keys(customerInfo.entitlements.active),
       });
@@ -274,7 +284,7 @@ export class RevenueCatConfig {
       };
     } catch (error) {
       console.error('Failed to restore purchases:', error);
-      
+
       return {
         success: false,
         error: error as PurchasesError,
@@ -329,8 +339,8 @@ export class RevenueCatConfig {
       return {
         isActive: true,
         productIdentifier: entitlement.productIdentifier,
-        purchaseDate: entitlement.latestPurchaseDate,
-        expirationDate: entitlement.expirationDate,
+        purchaseDate: entitlement.latestPurchaseDate || undefined,
+        expirationDate: entitlement.expirationDate || undefined,
         willRenew: entitlement.willRenew,
       };
     } catch (error) {
@@ -339,18 +349,7 @@ export class RevenueCatConfig {
     }
   }
 
-  /**
-   * カスタマー属性を設定
-   */
-  static async setCustomerAttributes(attributes: Record<string, string>): Promise<void> {
-    try {
-      await Purchases.setAttributes(attributes);
-      console.log('Customer attributes set:', attributes);
-    } catch (error) {
-      console.error('Failed to set customer attributes:', error);
-      throw error;
-    }
-  }
+
 
   /**
    * デバッグ情報を取得
