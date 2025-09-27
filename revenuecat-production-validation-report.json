@@ -1,0 +1,45 @@
+{
+  "timestamp": "2025-09-27T09:24:40.925Z",
+  "environment": "production",
+  "revenueCatEnabled": true,
+  "validationResults": {
+    "configuration": {
+      "enabled": true,
+      "iosApiKey": "appl_JhkrXffLXIZfxeDdCZyuIXKIyBv",
+      "androidApiKey": "appl_JhkrXffLXIZfxeDdCZyuIXKIyBv",
+      "appName": "PeerLearningHub",
+      "appVersion": "1.0.0",
+      "environment": "production"
+    },
+    "apiKeys": {
+      "ios": {
+        "valid": true,
+        "format": "production"
+      },
+      "android": {
+        "valid": true,
+        "format": "production"
+      }
+    },
+    "connectivity": {
+      "configurationLoaded": true,
+      "environmentSet": true,
+      "keysPresent": true
+    },
+    "products": {
+      "configFileExists": true,
+      "expectedProducts": [
+        "peer_learning_hub_monthly",
+        "peer_learning_hub_yearly",
+        "peer_learning_hub_lifetime"
+      ],
+      "expectedEntitlements": [
+        "premium_membership"
+      ]
+    },
+    "summary": {}
+  },
+  "recommendations": [
+    "RevenueCat configuration appears to be properly set up for production"
+  ]
+}

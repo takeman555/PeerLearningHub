@@ -59,6 +59,20 @@ export function hasAdminAccess(role?: string): boolean {
 }
 
 /**
+ * Check if user has super admin access
+ */
+export function hasSuperAdminAccess(role?: string): boolean {
+  return role === 'super_admin';
+}
+
+/**
+ * Check if user can access next phase features
+ */
+export function canAccessNextPhaseFeatures(role?: string): boolean {
+  return hasSuperAdminAccess(role);
+}
+
+/**
  * Check if user has specific permission
  */
 export function hasPermission(role?: string, permission: keyof UserPermissions): boolean {

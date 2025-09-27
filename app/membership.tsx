@@ -1,17 +1,25 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import AuthGuard from '../components/AuthGuard';
 import MembershipScreen from '../components/Membership/MembershipScreen';
 
 export default function MembershipPage() {
+  const router = useRouter();
+
   return (
-    <View style={styles.container}>
-      <MembershipScreen />
-    </View>
+    <AuthGuard requireAuth={true}>
+      <SafeAreaView style={styles.safeArea}>
+        <MembershipScreen />
+      </SafeAreaView>
+    </AuthGuard>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
+    backgroundColor: '#f8fafc',
   },
 });

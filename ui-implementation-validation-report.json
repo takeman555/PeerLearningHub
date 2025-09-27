@@ -1,0 +1,35 @@
+{
+  "timestamp": "2025-09-27T09:38:27.881Z",
+  "totalChecks": 17,
+  "passedChecks": 13,
+  "failedChecks": 4,
+  "successRate": 76,
+  "results": {
+    "routes": {
+      "app/membership.tsx": true,
+      "app/terms.tsx": true,
+      "app/privacy.tsx": true,
+      "app/community-guidelines.tsx": true
+    },
+    "components": {
+      "components/Membership/MembershipScreen.tsx": true,
+      "components/Membership/UpgradePrompt.tsx": true,
+      "components/Membership/MembershipStatus.tsx": true
+    },
+    "links": {
+      "membershipLink": true,
+      "termsLink": false,
+      "privacyLink": false,
+      "communityGuidelinesLink": false,
+      "premiumButton": true,
+      "legalSection": false
+    },
+    "content": {
+      "termsContent": true,
+      "privacyContent": true,
+      "communityContent": true,
+      "membershipContent": true
+    },
+    "summary": {}
+  }
+}

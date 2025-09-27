@@ -3,7 +3,8 @@ import Purchases, {
   PurchasesPackage,
   CustomerInfo,
   PurchasesError,
-  LOG_LEVEL
+  LOG_LEVEL,
+  PURCHASES_ERROR_CODE
 } from 'react-native-purchases';
 import { Platform } from 'react-native';
 
@@ -95,7 +96,7 @@ export class RevenueCatConfig {
       }
 
       // RevenueCat初期化
-      await Purchases.configure({
+      Purchases.configure({
         apiKey,
         appUserID: undefined, // 後でsetAppUserIDで設定
       });
@@ -256,8 +257,8 @@ export class RevenueCatConfig {
       const purchasesError = error as PurchasesError;
 
       // Check if user cancelled using error code instead of deprecated property
-      const userCancelled = purchasesError.code === 'USER_CANCELLED' ||
-        purchasesError.code === 'PURCHASE_CANCELLED';
+      const userCancelled = purchasesError.code === PURCHASES_ERROR_CODE.USER_CANCELLED_ERROR ||
+        purchasesError.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR;
 
       return {
         success: false,
@@ -339,8 +340,8 @@ export class RevenueCatConfig {
       return {
         isActive: true,
         productIdentifier: entitlement.productIdentifier,
-        purchaseDate: entitlement.latestPurchaseDate || undefined,
-        expirationDate: entitlement.expirationDate || undefined,
+        purchaseDate: entitlement.latestPurchaseDate ? new Date(entitlement.latestPurchaseDate) : undefined,
+        expirationDate: entitlement.expirationDate ? new Date(entitlement.expirationDate) : undefined,
         willRenew: entitlement.willRenew,
       };
     } catch (error) {

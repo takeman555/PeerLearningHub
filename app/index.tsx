@@ -6,7 +6,8 @@ import AuthGuard from '../components/AuthGuard';
 import { useAuth } from '../contexts/AuthContext';
 import { SupabaseConnectionTest } from '../components/SupabaseConnectionTest';
 import DevTestUser from '../components/DevTestUser';
-import { hasAdminAccess, getRoleDisplayText } from '../utils/permissions';
+import { hasAdminAccess, getRoleDisplayText, canAccessNextPhaseFeatures } from '../utils/permissions';
+import { getAvailableFeatures, getFeatureStatusText, getFeatureButtonStyle } from '../config/phases';
 import { useOptimizedNavigation } from '../hooks/useOptimizedNavigation';
 import OptimizedButton from '../components/OptimizedButton';
 import OptimizedScrollView from '../components/OptimizedScrollView';
@@ -22,6 +23,9 @@ export default function HomePage() {
   
   // Get user role for permission checks
   const userRole = user?.user_metadata?.role;
+  
+  // Get available features based on user role
+  const availableFeatures = getAvailableFeatures(userRole);
 
   return (
     <AuthGuard requireAuth={false}>
@@ -68,127 +72,83 @@ export default function HomePage() {
         )}
       </View>
 
-      {/* Supabase Connection Test - Remove this after setup is complete */}
-      <SupabaseConnectionTest />
+      {/* Development Components */}
+      {/* Supabase Connection Test - Super Admin only */}
+      {canAccessNextPhaseFeatures(userRole) && <SupabaseConnectionTest />}
       
-      {/* Development Test User Component - Remove this in production */}
+      {/* Development Test User Component - Always show when not logged in for development */}
       {!user && <DevTestUser />}
 
       {/* Main Content */}
       <View style={styles.content}>
         
         <View style={styles.buttonContainer}>
-          {/* 第一フェーズから提供予定の機能 */}
-          <Link href="/community" asChild>
-            <TouchableOpacity style={styles.actionButton}>
-              <Text style={styles.buttonIcon}>🌍</Text>
-              <Text style={styles.actionButtonText}>グローバルコミュニティ</Text>
-              <Text style={styles.buttonDescription}>世界中の学習者やデジタルノマドとつながる</Text>
-            </TouchableOpacity>
-          </Link>
+          {/* Dynamic feature rendering based on user role and phase configuration */}
+          {availableFeatures.map((feature) => {
+            const statusText = getFeatureStatusText(feature);
+            const buttonStyleType = getFeatureButtonStyle(feature);
+            
+            // Get appropriate button style
+            let buttonStyle = [styles.actionButton];
+            if (buttonStyleType === 'development') {
+              buttonStyle.push(styles.nextPhaseButton);
+            } else if (buttonStyleType === 'coming_soon') {
+              buttonStyle.push(styles.comingSoonButton);
+            } else if (feature.id === 'search') {
+              buttonStyle.push(styles.searchButton);
+            } else if (feature.id === 'admin') {
+              buttonStyle.push(styles.adminButton);
+            }
+            
+            return (
+              <Link key={feature.id} href={feature.route} asChild>
+                <TouchableOpacity style={buttonStyle}>
+                  <Text style={styles.buttonIcon}>{feature.icon}</Text>
+                  <Text style={styles.actionButtonText}>{feature.name}</Text>
+                  <Text style={styles.buttonDescription}>{feature.description}</Text>
+                  {statusText && (
+                    <Text style={
+                      buttonStyleType === 'development' ? styles.nextPhaseText :
+                      buttonStyleType === 'coming_soon' ? styles.comingSoonText :
+                      styles.nextPhaseText
+                    }>
+                      {statusText}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </Link>
+            );
+          })}
+        </View>
 
-          <Link href="/search" asChild>
-            <TouchableOpacity style={[styles.actionButton, styles.searchButton]}>
-              <Text style={styles.buttonIcon}>🔍</Text>
-              <Text style={styles.actionButtonText}>検索・発見</Text>
-              <Text style={styles.buttonDescription}>プロジェクト、リソース、宿泊施設を横断検索</Text>
-            </TouchableOpacity>
-          </Link>
-
-          <Link href="/resources" asChild>
-            <TouchableOpacity style={styles.actionButton}>
-              <Text style={styles.buttonIcon}>📚</Text>
-              <Text style={styles.actionButtonText}>リソース・情報</Text>
-              <Text style={styles.buttonDescription}>学習リソースなどの有用情報と公式情報へのアクセス</Text>
-            </TouchableOpacity>
-          </Link>
-
-          {/* 次期フェーズでの提供機能 */}
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.comingSoonButton]}
-            disabled={true}
-          >
-            <Text style={styles.buttonIcon}>📊</Text>
-            <Text style={styles.actionButtonText}>ダッシュボード</Text>
-            <Text style={styles.buttonDescription}>ピアラーニングハブでの活動のナビゲーション</Text>
-            <Text style={styles.comingSoonText}>🚧 次期フェーズで提供予定</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.comingSoonButton]}
-            disabled={true}
-          >
-            <Text style={styles.buttonIcon}>🚀</Text>
-            <Text style={styles.actionButtonText}>プロジェクト</Text>
-            <Text style={styles.buttonDescription}>期限付き企画。関連セミナー・イベントへの参加</Text>
-            <Text style={styles.comingSoonText}>🚧 次期フェーズで提供予定</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.comingSoonButton]}
-            disabled={true}
-          >
-            <Text style={styles.buttonIcon}>👥</Text>
-            <Text style={styles.actionButtonText}>ピア学習セッション</Text>
-            <Text style={styles.buttonDescription}>部活動や継続的なコミュニティへの参加</Text>
-            <Text style={styles.comingSoonText}>🚧 次期フェーズで提供予定</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.comingSoonButton]}
-            disabled={true}
-          >
-            <Text style={styles.buttonIcon}>🏨</Text>
-            <Text style={styles.actionButtonText}>宿泊予約</Text>
-            <Text style={styles.buttonDescription}>ピアラーニングハブの公式施設の予約・履歴管理</Text>
-            <Text style={styles.comingSoonText}>🚧 次期フェーズで提供予定</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.comingSoonButton]}
-            disabled={true}
-          >
-            <Text style={styles.buttonIcon}>📅</Text>
-            <Text style={styles.actionButtonText}>活動履歴・予定管理</Text>
-            <Text style={styles.buttonDescription}>ピアラーニングハブでの活動の履歴確認と予約管理</Text>
-            <Text style={styles.comingSoonText}>🚧 次期フェーズで提供予定</Text>
-          </TouchableOpacity>
-
-          {user && hasAdminAccess(userRole) ? (
-            <Link href="/admin" asChild>
-              <TouchableOpacity style={[styles.actionButton, styles.adminButton]}>
-                <Text style={styles.buttonIcon}>⚙️</Text>
-                <Text style={styles.actionButtonText}>管理者ダッシュボード</Text>
-                <Text style={styles.buttonDescription}>システム管理とユーザー管理</Text>
+        {/* Premium Features Section */}
+        {user && (
+          <View style={styles.premiumSection}>
+            <Text style={styles.premiumTitle}>🌟 プレミアム機能</Text>
+            <Text style={styles.premiumDescription}>
+              すべての機能を解放して、学習体験を最大化しましょう
+            </Text>
+            <Link href="/membership" asChild>
+              <TouchableOpacity style={styles.premiumButton}>
+                <Text style={styles.premiumButtonIcon}>👑</Text>
+                <Text style={styles.premiumButtonText}>プレミアムにアップグレード</Text>
+                <Text style={styles.premiumButtonSubtext}>
+                  無制限アクセス・優先サポート・特別コンテンツ
+                </Text>
               </TouchableOpacity>
             </Link>
-          ) : user ? (
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.lockedButton]}
-              onPress={() => navigateOptimized('/login')}
-            >
-              <Text style={styles.buttonIcon}>⚙️</Text>
-              <Text style={styles.actionButtonText}>管理者ダッシュボード</Text>
-              <Text style={styles.buttonDescription}>システム管理とユーザー管理</Text>
-              <Text style={styles.lockText}>🔒 管理者権限が必要です</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.lockedButton]}
-              onPress={() => navigateOptimized('/login')}
-            >
-              <Text style={styles.buttonIcon}>⚙️</Text>
-              <Text style={styles.actionButtonText}>管理者ダッシュボード</Text>
-              <Text style={styles.buttonDescription}>システム管理とユーザー管理</Text>
-              <Text style={styles.lockText}>🔒 ログインが必要です</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+          </View>
+        )}
+
+
 
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             ピアラーニングハブで世界中の学習者・デジタルノマドとつながり、共に成長しましょう！
+          </Text>
+          <Text style={styles.versionText}>
+            Version {process.env.EXPO_PUBLIC_APP_VERSION || '1.0.0'}
           </Text>
         </View>
       </View>
@@ -361,6 +321,66 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textAlign: 'center',
   },
+  nextPhaseButton: {
+    backgroundColor: '#e0f2fe',
+    borderColor: '#0284c7',
+    borderWidth: 2,
+  },
+  nextPhaseText: {
+    fontSize: 12,
+    color: '#0284c7',
+    fontWeight: '600',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  premiumSection: {
+    marginTop: 30,
+    padding: 20,
+    backgroundColor: '#fef7cd',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#f59e0b',
+  },
+  premiumTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#92400e',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  premiumDescription: {
+    fontSize: 14,
+    color: '#78350f',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  premiumButton: {
+    backgroundColor: '#f59e0b',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  premiumButtonIcon: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  premiumButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 4,
+  },
+  premiumButtonSubtext: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'center',
+  },
+
   footer: {
     marginTop: 30,
     padding: 20,
@@ -372,5 +392,11 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     textAlign: 'center',
     lineHeight: 20,
+    marginBottom: 8,
+  },
+  versionText: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
   },
 });

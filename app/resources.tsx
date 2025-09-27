@@ -570,15 +570,24 @@ export default function Resources() {
         <View style={styles.linksSection}>
           <Text style={styles.linksSectionTitle}>関連リンク</Text>
           
-          <TouchableOpacity style={styles.linkButton}>
+          <TouchableOpacity 
+            style={styles.linkButton}
+            onPress={() => router.push('/terms')}
+          >
             <Text style={styles.linkText}>利用規約</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.linkButton}>
+          <TouchableOpacity 
+            style={styles.linkButton}
+            onPress={() => router.push('/privacy')}
+          >
             <Text style={styles.linkText}>プライバシーポリシー</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.linkButton}>
+          <TouchableOpacity 
+            style={styles.linkButton}
+            onPress={() => router.push('/community-guidelines')}
+          >
             <Text style={styles.linkText}>コミュニティガイドライン</Text>
           </TouchableOpacity>
         </View>
