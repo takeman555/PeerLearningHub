@@ -297,19 +297,7 @@ class CommunityFeedService {
         .eq('id', postId)
         .single();
 
-      // Check if post_likes table is accessible
-      const { error: tableCheckError } = await supabase
-        .from('post_likes')
-        .select('count', { count: 'exact', head: true });
-
-      if (tableCheckError) {
-        console.warn('post_likes table not accessible, using fallback:', tableCheckError.message);
-        // Return graceful fallback - simulate like action without database update
-        return {
-          isLiked: false, // Always return false since we can't track likes
-          likesCount: post?.likes_count || 0
-        };
-      }
+      // post_likes table should now be accessible after fixes
 
       // Check if already liked
       const { data: existingLike, error: selectError } = await supabase
@@ -320,11 +308,6 @@ class CommunityFeedService {
         .single();
 
       if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = no rows returned
-        // If it's a schema cache error, treat as table unavailable
-        if (selectError.code === 'PGRST205' || selectError.code === 'PGRST200') {
-          console.error('post_likes table schema cache error:', selectError.message);
-          throw new Error('Like functionality is temporarily unavailable. Please try again later.');
-        }
         console.error('Error checking existing like:', selectError);
         throw new Error('Failed to check like status');
       }

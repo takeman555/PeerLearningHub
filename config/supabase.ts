@@ -1,3 +1,6 @@
+// Apply compatibility patch before importing Supabase
+import '../utils/supabaseCompatibilityPatch';
+
 import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { productionConfig, validateProductionConfig } from './production';
@@ -7,14 +10,19 @@ const isProduction = process.env.EXPO_PUBLIC_ENVIRONMENT === 'production';
 const isStaging = process.env.EXPO_PUBLIC_ENVIRONMENT === 'staging';
 
 // Supabase configuration with environment-specific fallbacks
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 
-  (isProduction ? '' : 'https://your-project.supabase.co');
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 
-  (isProduction ? '' : 'your-anon-key');
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-// Validate required configuration in production
-if (isProduction && (!supabaseUrl || !supabaseAnonKey)) {
-  throw new Error('Production Supabase configuration is missing. Please check environment variables.');
+// Debug environment variables
+console.log('Environment variables check:');
+console.log('EXPO_PUBLIC_SUPABASE_URL:', process.env.EXPO_PUBLIC_SUPABASE_URL);
+console.log('EXPO_PUBLIC_SUPABASE_ANON_KEY:', process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set');
+
+// Validate required configuration
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(`Supabase configuration is missing. Please check environment variables.
+    URL: ${supabaseUrl ? 'Set' : 'Missing'}
+    Key: ${supabaseAnonKey ? 'Set' : 'Missing'}`);
 }
 
 // Validate production configuration
@@ -27,32 +35,14 @@ if (isProduction) {
   }
 }
 
-// Create Supabase client with enhanced configuration for production
+// Create Supabase client with minimal configuration to avoid compatibility issues
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
-    // Production-specific auth settings
-    ...(isProduction && {
-      flowType: 'pkce',
-      debug: false,
-    }),
   },
-  // Production-specific client settings
-  ...(isProduction && {
-    realtime: {
-      params: {
-        eventsPerSecond: 10, // Rate limit for realtime events
-      },
-    },
-    global: {
-      headers: {
-        'X-Client-Info': `PeerLearningHub/${productionConfig.app.version}`,
-      },
-    },
-  }),
 });
 
 // Database types for the PeerLearningHub schema

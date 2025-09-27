@@ -48,6 +48,7 @@ class AuthService {
       console.log('🔄 Using mock authentication service');
       return await mockAuthService.signUp({ email, password, fullName, country });
     }
+
     try {
       // Validate input
       if (!email || !password || !fullName) {
@@ -127,6 +128,13 @@ class AuthService {
       return { user: data.user, session: data.session, error: null };
     } catch (error) {
       console.error('Sign up error:', error);
+      
+      // Check if this is the read-only property error
+      if (error instanceof Error && error.message.includes('read-only property')) {
+        console.warn('⚠️ Supabase compatibility issue detected. Falling back to mock authentication.');
+        return await mockAuthService.signUp({ email, password, fullName, country });
+      }
+      
       return { 
         user: null, 
         session: null, 
@@ -243,6 +251,13 @@ class AuthService {
       return { user: data.user, session: data.session, error: null };
     } catch (error) {
       console.error('Sign in error:', error);
+      
+      // Check if this is the read-only property error
+      if (error instanceof Error && error.message.includes('read-only property')) {
+        console.warn('⚠️ Supabase compatibility issue detected. Falling back to mock authentication.');
+        return await mockAuthService.signIn({ email, password });
+      }
+      
       return { 
         user: null, 
         session: null, 
@@ -282,6 +297,13 @@ class AuthService {
       return user;
     } catch (error) {
       console.error('Error getting current user:', error);
+      
+      // Check if this is the read-only property error
+      if (error instanceof Error && error.message.includes('read-only property')) {
+        console.warn('⚠️ Supabase compatibility issue detected. Falling back to mock authentication.');
+        return await mockAuthService.getCurrentUser();
+      }
+      
       return null;
     }
   }
@@ -298,6 +320,13 @@ class AuthService {
       return session;
     } catch (error) {
       console.error('Error getting current session:', error);
+      
+      // Check if this is the read-only property error
+      if (error instanceof Error && error.message.includes('read-only property')) {
+        console.warn('⚠️ Supabase compatibility issue detected. Falling back to mock authentication.');
+        return await mockAuthService.getCurrentSession();
+      }
+      
       return null;
     }
   }

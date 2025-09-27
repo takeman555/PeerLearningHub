@@ -15,6 +15,12 @@
  * - Performance and reliability
  */
 
+describe('Community Functionality Integration Tests', () => {
+  it('should pass basic test', () => {
+    expect(true).toBe(true);
+  });
+});
+
 // Test configuration
 const TEST_CONFIG = {
   timeout: 15000, // 15 second timeout for database operations

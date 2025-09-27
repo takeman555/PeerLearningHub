@@ -48,9 +48,14 @@ export const testSupabaseConnection = async (): Promise<{
  */
 export const getSupabaseInfo = () => {
   const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
-  const hasValidUrl = url && url !== 'https://your-project.supabase.co';
-  const hasValidKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY && 
-                     process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY !== 'your-anon-key';
+  const key = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+  
+  // Debug logging
+  console.log('getSupabaseInfo - URL:', url);
+  console.log('getSupabaseInfo - Key:', key ? 'Present' : 'Missing');
+  
+  const hasValidUrl = url && url !== 'https://your-project.supabase.co' && url.includes('supabase.co');
+  const hasValidKey = key && key !== 'your-anon-key' && key.length > 50;
 
   return {
     url: url || 'Not configured',

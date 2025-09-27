@@ -30,11 +30,20 @@ export interface KeyRotationResult {
 
 export class EncryptionService {
   private static instance: EncryptionService;
-  private keys: Map<string, CryptoKey> = new Map();
+  private keys: Map<string, CryptoKey | null> = new Map();
   private keyInfo: Map<string, EncryptionKeyInfo> = new Map();
   private currentKeyId: string | null = null;
+  private readonly supportsWebCrypto: boolean;
 
   private constructor() {
+    this.supportsWebCrypto = typeof globalThis !== 'undefined' &&
+      typeof globalThis.crypto !== 'undefined' &&
+      !!globalThis.crypto.subtle;
+
+    if (!this.supportsWebCrypto) {
+      console.warn('crypto.subtle not available, falling back to mock encryption.');
+    }
+
     this.initializeEncryption();
   }
 
@@ -66,18 +75,22 @@ export class EncryptionService {
   async generateNewKey(): Promise<string> {
     try {
       const keyId = this.generateKeyId();
-      const key = await crypto.subtle.generateKey(
-        {
-          name: 'AES-GCM',
-          length: 256, // 256-bit key
-        },
-        true, // extractable
-        ['encrypt', 'decrypt']
-      );
+      let key: CryptoKey | null = null;
+
+      if (this.supportsWebCrypto) {
+        key = await crypto.subtle.generateKey(
+          {
+            name: 'AES-GCM',
+            length: 256, // 256-bit key
+          },
+          true, // extractable
+          ['encrypt', 'decrypt']
+        );
+      }
 
       const keyInfo: EncryptionKeyInfo = {
         keyId,
-        algorithm: 'AES-256-GCM',
+        algorithm: this.supportsWebCrypto ? 'AES-256-GCM' : 'MOCK-NO-ENCRYPTION',
         createdAt: new Date(),
         expiresAt: new Date(Date.now() + productionSecurityConfig.encryption.keyRotationInterval * 24 * 60 * 60 * 1000),
         isActive: true,
@@ -118,6 +131,16 @@ export class EncryptionService {
       }
 
       const key = this.keys.get(useKeyId);
+      if (!this.supportsWebCrypto) {
+        return {
+          data: this.encodeBase64(data),
+          keyId: useKeyId,
+          algorithm: 'MOCK-NO-ENCRYPTION',
+          iv: '',
+          timestamp: new Date(),
+        };
+      }
+
       if (!key) {
         throw new Error(`Encryption key not found: ${useKeyId}`);
       }
@@ -158,6 +181,10 @@ export class EncryptionService {
   async decryptData(encryptedData: EncryptedData): Promise<string> {
     try {
       const key = this.keys.get(encryptedData.keyId);
+      if (!this.supportsWebCrypto) {
+        return this.decodeBase64(encryptedData.data);
+      }
+
       if (!key) {
         throw new Error(`Decryption key not found: ${encryptedData.keyId}`);
       }
@@ -184,6 +211,32 @@ export class EncryptionService {
       console.error('Data decryption failed:', error);
       throw new Error('Failed to decrypt data');
     }
+  }
+
+  private encodeBase64(value: string): string {
+    if (typeof btoa === 'function') {
+      return btoa(unescape(encodeURIComponent(value)));
+    }
+
+    const maybeBuffer = (globalThis as any).Buffer;
+    if (maybeBuffer?.from) {
+      return maybeBuffer.from(value, 'utf-8').toString('base64');
+    }
+
+    throw new Error('No base64 encoder available in this environment');
+  }
+
+  private decodeBase64(value: string): string {
+    if (typeof atob === 'function') {
+      return decodeURIComponent(escape(atob(value)));
+    }
+
+    const maybeBuffer = (globalThis as any).Buffer;
+    if (maybeBuffer?.from) {
+      return maybeBuffer.from(value, 'base64').toString('utf-8');
+    }
+
+    throw new Error('No base64 decoder available in this environment');
   }
 
   /**
@@ -542,6 +595,14 @@ export class EncryptionService {
    */
   validateConfiguration(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
+
+    if (!this.supportsWebCrypto) {
+      errors.push('WebCrypto API is not available; running with mock encryption.');
+      return {
+        isValid: false,
+        errors,
+      };
+    }
 
     if (!productionSecurityConfig.encryption.enableDataEncryption) {
       errors.push('Data encryption is not enabled');

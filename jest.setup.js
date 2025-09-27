@@ -1,5 +1,7 @@
 // Jest setup file for PeerLearningHub
 
+require('./utils/eventConstantPatch');
+
 // Mock React Native modules
 jest.mock('react-native', () => ({
   Platform: {

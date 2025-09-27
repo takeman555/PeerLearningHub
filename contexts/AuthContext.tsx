@@ -42,8 +42,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
-        if (isMounted) {
-          setLoading(false);
+        
+        // Check if this is the read-only property error
+        if (error instanceof Error && error.message.includes('read-only property')) {
+          console.warn('⚠️ Supabase compatibility issue detected. Using fallback authentication.');
+          // Set a fallback state to prevent app crash
+          if (isMounted) {
+            setSession(null);
+            setUser(null);
+            setLoading(false);
+          }
+        } else {
+          if (isMounted) {
+            setLoading(false);
+          }
         }
       }
     };

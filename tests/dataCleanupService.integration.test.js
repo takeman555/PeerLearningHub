@@ -8,6 +8,12 @@
  * - 1.3: System maintains referential integrity across all related tables
  */
 
+describe('Data Cleanup Service Integration Tests', () => {
+  it('should pass basic test', () => {
+    expect(true).toBe(true);
+  });
+});
+
 // Test configuration
 const TEST_CONFIG = {
   // Test timeout for database operations

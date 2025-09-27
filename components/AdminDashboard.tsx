@@ -7,13 +7,15 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  RefreshControl
+  RefreshControl,
+  Modal
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { groupsService, Group } from '../services/groupsService';
 import { dataCleanupService, CompleteCleanupResult } from '../services/dataCleanupService';
 import { permissionManager } from '../services/permissionManager';
 import AdminGroupCreator from './AdminGroupCreator';
+import AdminPostManagement from './AdminPostManagement';
 
 interface AdminDashboardProps {
   onNavigateToGroups?: () => void;
@@ -27,6 +29,7 @@ export default function AdminDashboard({ onNavigateToGroups }: AdminDashboardPro
   const [showGroupCreator, setShowGroupCreator] = useState(false);
   const [cleanupLoading, setCleanupLoading] = useState(false);
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
+  const [showPostManagement, setShowPostManagement] = useState(false);
   const [systemStats, setSystemStats] = useState({
     postsCount: 0,
     groupsCount: 0,
@@ -279,10 +282,14 @@ export default function AdminDashboard({ onNavigateToGroups }: AdminDashboardPro
       <View style={styles.statsContainer}>
         <Text style={styles.sectionTitle}>📊 システム統計</Text>
         <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
+          <TouchableOpacity 
+            style={styles.statCard}
+            onPress={() => setShowPostManagement(true)}
+          >
             <Text style={styles.statNumber}>{systemStats.postsCount}</Text>
             <Text style={styles.statLabel}>投稿数</Text>
-          </View>
+            <Text style={styles.statAction}>タップして管理</Text>
+          </TouchableOpacity>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{systemStats.groupsCount}</Text>
             <Text style={styles.statLabel}>グループ数</Text>
@@ -295,6 +302,26 @@ export default function AdminDashboard({ onNavigateToGroups }: AdminDashboardPro
             <Text style={styles.statNumber}>{systemStats.groupMembershipsCount}</Text>
             <Text style={styles.statLabel}>メンバーシップ</Text>
           </View>
+        </View>
+      </View>
+
+      {/* Admin Actions */}
+      <View style={styles.actionsContainer}>
+        <Text style={styles.sectionTitle}>🛠️ 管理機能</Text>
+        <View style={styles.actionsList}>
+          <TouchableOpacity
+            style={styles.adminActionButton}
+            onPress={() => setShowPostManagement(true)}
+          >
+            <Text style={styles.adminActionIcon}>📝</Text>
+            <View style={styles.adminActionContent}>
+              <Text style={styles.adminActionTitle}>投稿管理</Text>
+              <Text style={styles.adminActionDescription}>
+                投稿の削除・復元・検索を行います
+              </Text>
+            </View>
+            <Text style={styles.adminActionArrow}>›</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -386,6 +413,16 @@ export default function AdminDashboard({ onNavigateToGroups }: AdminDashboardPro
         onClose={() => setShowGroupCreator(false)}
         onGroupCreated={loadData}
       />
+
+      <Modal
+        visible={showPostManagement}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <AdminPostManagement
+          onClose={() => setShowPostManagement(false)}
+        />
+      </Modal>
     </ScrollView>
   );
 }
@@ -474,6 +511,59 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6b7280',
     textAlign: 'center',
+  },
+  statAction: {
+    fontSize: 10,
+    color: '#3b82f6',
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  // Admin Actions Styles
+  actionsContainer: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  actionsList: {
+    gap: 12,
+  },
+  adminActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  adminActionIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  adminActionContent: {
+    flex: 1,
+  },
+  adminActionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 2,
+  },
+  adminActionDescription: {
+    fontSize: 12,
+    color: '#6b7280',
+    lineHeight: 16,
+  },
+  adminActionArrow: {
+    fontSize: 20,
+    color: '#9ca3af',
+    marginLeft: 8,
   },
   // Cleanup Styles
   cleanupContainer: {

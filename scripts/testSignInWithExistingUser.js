@@ -18,9 +18,9 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 async function testSignInWithKnownUser() {
   console.log('\n🔐 Testing sign in with known user...');
   
-  // Try with a test user that might already exist
-  const testEmail = 'testuser@gmail.com';
-  const testPassword = 'TestPassword123!';
+  // Try with a confirmed test user
+  const testEmail = 'member1@example.com';
+  const testPassword = 'password123';
   
   try {
     const { data, error } = await supabase.auth.signInWithPassword({

@@ -17,7 +17,7 @@ async function testCommunityFeed() {
   console.log('🚀 Testing Community Feed Service...\n');
   
   try {
-    // Test 1: Get posts with author information
+    // Test 1: Get posts with author information (without JOIN)
     console.log('🔍 Test 1: Fetching posts with author information...');
     const { data: posts, error: postsError } = await supabase
       .from('posts')
@@ -30,11 +30,7 @@ async function testCommunityFeed() {
         comments_count,
         is_active,
         created_at,
-        updated_at,
-        profiles!posts_user_id_fkey (
-          full_name,
-          email
-        )
+        updated_at
       `)
       .eq('is_active', true)
       .order('created_at', { ascending: false })
@@ -46,10 +42,17 @@ async function testCommunityFeed() {
       console.log('✅ Posts query successful!');
       console.log(`📊 Found ${posts.length} posts`);
       if (posts.length > 0) {
+        // Get author information separately
+        const { data: author } = await supabase
+          .from('profiles')
+          .select('full_name, email')
+          .eq('id', posts[0].user_id)
+          .single();
+        
         console.log('📝 Sample post:', {
           id: posts[0].id,
           content: posts[0].content.substring(0, 50) + '...',
-          author: posts[0].profiles?.full_name || 'Unknown',
+          author: author?.full_name || 'Unknown',
           created: posts[0].created_at
         });
       }
@@ -91,30 +94,36 @@ async function testCommunityFeed() {
       });
     }
 
-    // Test 4: Test permission check simulation
+    // Test 4: Test permission check simulation (without JOIN)
     console.log('\n🔍 Test 4: Testing permission check simulation...');
     if (profiles.length > 0) {
       const testUserId = profiles[0].id;
       
-      const { data: userWithRoles, error: permError } = await supabase
+      // Get user profile
+      const { data: userProfile, error: profileError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          email,
-          full_name,
-          is_active,
-          user_roles!inner(role, is_active)
-        `)
+        .select('id, email, full_name, is_active')
         .eq('id', testUserId)
         .eq('is_active', true)
         .single();
 
-      if (permError) {
-        console.error('❌ Error checking user permissions:', permError);
+      if (profileError) {
+        console.error('❌ Error fetching user profile:', profileError);
       } else {
-        console.log('✅ Permission check successful!');
-        console.log(`👤 User: ${userWithRoles.full_name || userWithRoles.email}`);
-        console.log(`🔑 Roles: ${userWithRoles.user_roles.map(r => r.role).join(', ')}`);
+        // Get user roles separately
+        const { data: userRoles, error: rolesError } = await supabase
+          .from('user_roles')
+          .select('role, is_active')
+          .eq('user_id', testUserId)
+          .eq('is_active', true);
+
+        if (rolesError) {
+          console.error('❌ Error fetching user roles:', rolesError);
+        } else {
+          console.log('✅ Permission check successful!');
+          console.log(`👤 User: ${userProfile.full_name || userProfile.email}`);
+          console.log(`🔑 Roles: ${userRoles.map(r => r.role).join(', ') || 'No roles assigned'}`);
+        }
       }
     }
 

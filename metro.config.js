@@ -17,4 +17,8 @@ config.resolver.assetExts = [
   'json',
 ];
 
+config.serializer.getModulesRunBeforeMainModule = () => [
+  require.resolve('./utils/globalEventPatch'),
+];
+
 module.exports = config;

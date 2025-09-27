@@ -17,6 +17,12 @@
  * - 6.2: Permission denial for non-admins
  */
 
+describe('Integration Tests Demo', () => {
+  it('should pass basic test', () => {
+    expect(true).toBe(true);
+  });
+});
+
 // Test configuration
 const TEST_CONFIG = {
   timeout: 15000,

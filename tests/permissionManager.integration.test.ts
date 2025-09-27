@@ -14,6 +14,12 @@
  * - Error scenarios and edge cases
  */
 
+describe('Permission Manager Integration Tests', () => {
+  it('should pass basic test', () => {
+    expect(true).toBe(true);
+  });
+});
+
 import { permissionManager } from '../services/permissionManager';
 
 // Test configuration

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import AuthGuard from '../components/AuthGuard';
 import { useAuth } from '../contexts/AuthContext';
 import { SupabaseConnectionTest } from '../components/SupabaseConnectionTest';
@@ -13,6 +13,7 @@ import OptimizedScrollView from '../components/OptimizedScrollView';
 
 export default function HomePage() {
   const { user, signOut } = useAuth();
+  const router = useRouter();
   const { push: navigateOptimized } = useOptimizedNavigation({
     enablePreloading: true,
     enableMetrics: true,
@@ -164,7 +165,7 @@ export default function HomePage() {
           ) : user ? (
             <TouchableOpacity 
               style={[styles.actionButton, styles.lockedButton]}
-              onPress={() => router.push('/login')}
+              onPress={() => navigateOptimized('/login')}
             >
               <Text style={styles.buttonIcon}>⚙️</Text>
               <Text style={styles.actionButtonText}>管理者ダッシュボード</Text>
@@ -174,7 +175,7 @@ export default function HomePage() {
           ) : (
             <TouchableOpacity 
               style={[styles.actionButton, styles.lockedButton]}
-              onPress={() => router.push('/login')}
+              onPress={() => navigateOptimized('/login')}
             >
               <Text style={styles.buttonIcon}>⚙️</Text>
               <Text style={styles.actionButtonText}>管理者ダッシュボード</Text>

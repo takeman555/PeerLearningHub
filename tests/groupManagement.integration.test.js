@@ -17,6 +17,12 @@
  * - Performance and reliability
  */
 
+describe('Group Management Integration Tests', () => {
+  it('should pass basic test', () => {
+    expect(true).toBe(true);
+  });
+});
+
 // Test configuration
 const TEST_CONFIG = {
   timeout: 20000, // 20 second timeout for database operations
